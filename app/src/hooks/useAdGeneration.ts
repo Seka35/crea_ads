@@ -47,7 +47,14 @@ export function useAdGeneration() {
         body: JSON.stringify({ prompt: item.prompt, input_urls: uploadedUrlsRef.current })
       });
 
-      if (!res.ok) throw new Error("Image generation failed");
+      if (!res.ok) {
+        let errData = {};
+        try {
+          errData = await res.json();
+        } catch (e) {}
+        console.error("Backend Image Error:", errData);
+        throw new Error(errData.details || "Image generation failed");
+      }
       const data = await res.json();
 
       setAdImages(prev => ({
