@@ -31,8 +31,19 @@ else
   npx pm2 save
 fi
 
-# 4. Reload Nginx (optionnel, décommenter si besoin)
-# echo "🌐 Rechargement de Nginx..."
-# sudo systemctl reload nginx
+# 4. Configuration Nginx
+echo "🌐 Configuration de Nginx..."
+cp nginx.example.conf /etc/nginx/sites-available/crea_ads
+ln -sf /etc/nginx/sites-available/crea_ads /etc/nginx/sites-enabled/
+systemctl reload nginx
 
-echo "✅ Déploiement terminé avec succès sur crea.futurvps.pro !"
+# 5. Configuration SSL (Certbot)
+echo "🔒 Configuration du certificat SSL avec Certbot..."
+# Si certbot n'est pas installé, l'installer
+if ! command -v certbot &> /dev/null; then
+    apt update && apt install -y certbot python3-certbot-nginx
+fi
+# Générer le certificat SSL de manière non-interactive
+certbot --nginx -d crea.futurvps.pro --non-interactive --agree-tos --register-unsafely-without-email
+
+echo "✅ Déploiement terminé avec succès sur https://crea.futurvps.pro !"
