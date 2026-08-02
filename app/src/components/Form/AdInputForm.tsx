@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FileText, Upload } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
 import { AspectRatioSelector } from './AspectRatioSelector';
 
@@ -12,6 +13,7 @@ export interface AdGenerationData {
   awarenessLevel: string;
   uniqueMechanism: string;
   bigIdea: string;
+  brandDoc?: string;
   adsPerCategory: number;
   categorySelection: string;
   isPostMode: boolean;
@@ -35,6 +37,7 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
     awarenessLevel: 'unaware',
     uniqueMechanism: '',
     bigIdea: '',
+    brandDoc: '',
     adsPerCategory: 5,
     categorySelection: 'all',
     isPostMode: false,
@@ -51,6 +54,20 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleBrandDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        setFormData(prev => ({ ...prev, brandDoc: text }));
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -147,6 +164,30 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
           <div className="form-group">
             <label>Big Idea</label>
             <textarea name="bigIdea" value={formData.bigIdea} onChange={handleChange} placeholder="One-liner big idea..." rows={2}></textarea>
+          </div>
+
+          {/* Brand Art Direction & Guidelines (.md / .txt Upload) */}
+          <div className="form-group" style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px dashed rgba(99, 102, 241, 0.3)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <label style={{ margin: 0, fontWeight: 600, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <FileText size={16} /> Guide Direction Artistique & DA (.md / .txt)
+              </label>
+              <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.3rem 0.65rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Upload size={12} /> Upload .md / .txt
+                <input type="file" accept=".md,.txt,.markdown" onChange={handleBrandDocUpload} style={{ display: 'none' }} />
+              </label>
+            </div>
+            <p style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', margin: '0 0 0.5rem 0' }}>
+              Importez ou collez la charte graphique de la marque (codes couleurs hex, ton de voix, règles visuelles, présentation entreprise).
+            </p>
+            <textarea 
+              name="brandDoc"
+              rows={4} 
+              value={formData.brandDoc || ''} 
+              onChange={handleChange} 
+              placeholder="# Charte Graphique & DA&#10;- Couleurs: #080A14, #6366F1, #EC4899&#10;- Style: Ambiance tech haut de gamme, visuels ultra nets, typographie épurée." 
+              style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}
+            />
           </div>
         </div>
       </div>
