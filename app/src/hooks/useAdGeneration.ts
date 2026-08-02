@@ -48,7 +48,7 @@ export function useAdGeneration() {
       });
 
       if (!res.ok) {
-        let errData = {};
+        let errData: any = {};
         try {
           errData = await res.json();
         } catch (e) {}

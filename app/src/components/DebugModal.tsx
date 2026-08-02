@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 export default function DebugModal({ onClose }: { onClose: () => void }) {
   const [logs, setLogs] = useState<{ step: string; message: string; data?: any; error?: boolean }[]>([]);
