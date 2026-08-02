@@ -20,6 +20,31 @@ app.post('/api/generate-image', async (req, res) => {
   }
 });
 
+const { getHistory, getHistoryById, saveHistory, deleteHistory } = require('./controllers/history');
+
+app.get('/api/history', (req, res) => {
+  res.json(getHistory());
+});
+
+app.get('/api/history/:id', (req, res) => {
+  const item = getHistoryById(req.params.id);
+  if (item) {
+    res.json(item);
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
+});
+
+app.post('/api/history', (req, res) => {
+  const saved = saveHistory(req.body);
+  res.json({ success: true, id: saved.id });
+});
+
+app.delete('/api/history/:id', (req, res) => {
+  deleteHistory(req.params.id);
+  res.json({ success: true });
+});
+
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 

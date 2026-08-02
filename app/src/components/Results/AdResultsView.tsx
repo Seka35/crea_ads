@@ -28,10 +28,11 @@ interface AdResultsViewProps {
   buckets: Bucket[];
   adImages?: Record<string, AdImageState>;
   onRetryImage?: (adId: string, prompt: string) => void;
+  onSaveHistory?: (name: string) => void;
   onExport?: () => void;
 }
 
-export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, onExport }: AdResultsViewProps) {
+export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, onSaveHistory, onExport }: AdResultsViewProps) {
   if (!skeleton && buckets.length === 0) {
     return null;
   }
@@ -44,10 +45,15 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
           <span className="text-gradient">Generated Pipeline</span>
         </h2>
         {buckets.length > 0 && (
-          <button className="btn btn-secondary" onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Download size={16} />
-            Export JSON
-          </button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button className="btn btn-secondary" onClick={() => onSaveHistory?.(window.prompt('Nom de la campagne ?') || 'Sans nom')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Sauvegarder l'historique
+            </button>
+            <button className="btn btn-secondary" onClick={onExport} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Download size={16} />
+              Export JSON
+            </button>
+          </div>
         )}
       </div>
 

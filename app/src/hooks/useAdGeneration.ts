@@ -188,5 +188,54 @@ export function useAdGeneration() {
     URL.revokeObjectURL(url);
   };
 
-  return { isGenerating, progressText, skeleton, buckets, adImages, error, generatePipeline, exportData, retryImage };
+  const saveToHistory = async (productName: string) => {
+    try {
+      const res = await fetch('/api/history', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('app_password') || ''
+        },
+        body: JSON.stringify({ productName, skeleton, buckets, adImages })
+      });
+      if (res.ok) {
+        alert('Campagne sauvegardée avec succès dans l\'historique !');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Erreur lors de la sauvegarde');
+    }
+  };
+
+  const loadFromHistory = async (id: string) => {
+    try {
+      const res = await fetch(`/api/history/${id}`, {
+        headers: { 'Authorization': localStorage.getItem('app_password') || '' }
+      });
+      if (!res.ok) throw new Error("Failed to load history");
+      const item = await res.json();
+      setSkeleton(item.skeleton);
+      setBuckets(item.buckets || []);
+      setAdImages(item.adImages || {});
+      setError(null);
+    } catch (e) {
+      console.error(e);
+      alert('Erreur lors du chargement');
+    }
+  };
+
+  const getHistoryList = async () => {
+    try {
+      const res = await fetch('/api/history', {
+        headers: { 'Authorization': localStorage.getItem('app_password') || '' }
+      });
+      if (!res.ok) throw new Error("Failed to fetch history list");
+      return await res.json();
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+
+  return { isGenerating, progressText, skeleton, buckets, adImages, error, generatePipeline, exportData, retryImage, saveToHistory, loadFromHistory, getHistoryList };
 }

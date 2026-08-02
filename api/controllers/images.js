@@ -57,9 +57,22 @@ async function generateImage(prompt, input_urls) {
            const resultJsonStr = pollData.data.resultJson;
            try {
              const result = JSON.parse(resultJsonStr);
-             return result.resultUrls[0];
+             const kieUrl = result.resultUrls[0];
+             
+             // Download the image locally to avoid KIE expiration
+             const imgResponse = await fetch(kieUrl);
+             if (!imgResponse.ok) throw new Error("Failed to download image from KIE");
+             const buffer = await imgResponse.arrayBuffer();
+             const fileName = `kie-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+             const fs = require('fs');
+             const path = require('path');
+             const uploadDir = path.join(__dirname, '../uploads');
+             if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+             fs.writeFileSync(path.join(uploadDir, fileName), Buffer.from(buffer));
+             
+             return `/api/uploads/${fileName}`;
            } catch (e) {
-             throw new Error("Failed to parse resultUrls");
+             throw new Error("Failed to parse resultUrls or download image: " + e.message);
            }
        } else if (pollData.data && pollData.data.state === "failed") {
            throw new Error(`Task failed: ${pollData.data.failMsg}`);
@@ -69,9 +82,22 @@ async function generateImage(prompt, input_urls) {
            const resultJsonStr = pollData.data.resultJson;
            try {
              const result = JSON.parse(resultJsonStr);
-             return result.resultUrls[0];
+             const kieUrl = result.resultUrls[0];
+             
+             // Download the image locally to avoid KIE expiration
+             const imgResponse = await fetch(kieUrl);
+             if (!imgResponse.ok) throw new Error("Failed to download image from KIE");
+             const buffer = await imgResponse.arrayBuffer();
+             const fileName = `kie-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+             const fs = require('fs');
+             const path = require('path');
+             const uploadDir = path.join(__dirname, '../uploads');
+             if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+             fs.writeFileSync(path.join(uploadDir, fileName), Buffer.from(buffer));
+             
+             return `/api/uploads/${fileName}`;
            } catch (e) {
-             throw new Error("Failed to parse resultUrls");
+             throw new Error("Failed to parse resultUrls or download image: " + e.message);
            }
        } else if (pollData.data.state === "failed") {
            throw new Error(`Task failed: ${pollData.data.failMsg}`);
