@@ -180,12 +180,18 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
         })
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Generation failed');
+      const responseText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch (err) {
+        throw new Error("Server response timeout (504 Gateway Timeout). The AI image generation took longer than Nginx timeout limit.");
       }
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Generation failed (HTTP ${res.status})`);
+      }
+
       pendingResultsRef.current = data.items || [data.item];
       isApiDoneRef.current = true;
 
@@ -197,7 +203,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       clearInterval(stepTimerRef.current);
       clearTimeout(stepTimerRef.current);
       clearInterval(progressTimerRef.current);
-      alert('Error: ' + (e.message || 'Generation failed'));
+      alert('Generation Notice: ' + (e.message || 'Generation failed'));
       setIsGenerating(false);
     }
   };
