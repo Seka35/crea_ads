@@ -16,7 +16,7 @@ const LOADING_STEPS_EN = [
   "Synthesizing Precision Copywriting (Headline & Primary Positioning)...",
   "Executing High-Definition Visual Composition & Lighting Pass...",
   "Applying Custom Brand Assets, Typographic Overlays & Aspect Ratios...",
-  "Final Quality Control & Encrypted Render Delivery..."
+  "Final Quality Control & Encrypted Render Delivery (~1-2 min)..."
 ];
 
 const STEP_PROGRESS_TARGETS = [14, 28, 42, 56, 70, 84, 96];
@@ -445,6 +445,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
           display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000,
           padding: '1.5rem'
         }}>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes pulse {
+              0%, 100% { opacity: 1; transform: scale(1); }
+              50% { opacity: 0.4; transform: scale(0.85); }
+            }
+          `}</style>
           <div className="glass-card" style={{
             width: '100%', maxWidth: '640px', padding: '3rem 2.5rem',
             textAlign: 'center', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.3)',
@@ -498,7 +508,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               Proprietary Engine Processing...
             </h3>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', margin: '0 0 1.25rem 0' }}>
-              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name}
+              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name} (~1-2 min estimated)
             </p>
 
             {/* Live Active Pulse Badge */}
