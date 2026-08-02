@@ -17,7 +17,7 @@ async function generateImage(prompt, input_urls) {
       model: "gpt-image-2-image-to-image",
       input: {
         prompt: prompt,
-        input_urls: input_urls ? input_urls.slice(0, 2) : [],
+        input_urls: input_urls || [],
         aspect_ratio: "1:1",
         resolution: "2K"
       }
