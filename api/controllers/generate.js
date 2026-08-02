@@ -1,36 +1,36 @@
-const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-async function callMiniMax(promptContent, retries = 1) {
-  if (!MINIMAX_API_KEY) throw new Error("MINIMAX_API_KEY not configured");
+async function callLLM(promptContent, retries = 1) {
+  if (!OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY not configured");
 
   for (let i = 0; i <= retries; i++) {
     try {
-      const response = await fetch('https://api.minimax.io/anthropic/v1/messages', {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${MINIMAX_API_KEY}`
+          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': 'https://crea.futurvps.pro', 
+          'X-Title': 'Ad Creative Generator'
         },
         body: JSON.stringify({
-          model: 'MiniMax-M2.7',
+          model: 'anthropic/claude-3.5-sonnet',
           messages: [{ role: 'user', content: promptContent + "\n\nCRITICAL: You must output ONLY valid JSON. Escape all inner quotes using \\\"" }],
-          max_tokens: 4096,
-          temperature: 0.7
+          response_format: { type: 'json_object' }
         })
       });
 
       const data = await response.json();
       
       if (data.error) {
-        throw new Error(`MiniMax API Error: ${data.error.message || JSON.stringify(data.error)}`);
+        throw new Error(`OpenRouter API Error: ${data.error.message || JSON.stringify(data.error)}`);
       }
 
-      const textContent = data.content.find(c => c.type === 'text');
-      if (!textContent) {
-        throw new Error("No text content returned from MiniMax");
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error("No valid content returned from OpenRouter");
       }
 
-      let rawText = textContent.text.trim();
+      let rawText = data.choices[0].message.content.trim();
       if (rawText.includes("```json")) {
         rawText = rawText.split("```json")[1].split("```")[0].trim();
       } else if (rawText.includes("```")) {
@@ -39,7 +39,7 @@ async function callMiniMax(promptContent, retries = 1) {
 
       return JSON.parse(rawText);
     } catch (e) {
-      console.error(`MiniMax attempt ${i + 1} failed: ${e.message}`);
+      console.error(`LLM attempt ${i + 1} failed: ${e.message}`);
       if (i === retries) throw e;
     }
   }
@@ -73,7 +73,7 @@ Return EXACTLY this JSON structure:
   "angle_copy": []
 }
 `;
-  return await callMiniMax(skeletonPrompt);
+  return await callLLM(skeletonPrompt);
 }
 
 async function generateBucket(formData, category) {
@@ -107,7 +107,7 @@ Return EXACTLY this JSON structure:
 }
 `;
   try {
-    return await callMiniMax(bucketPrompt);
+    return await callLLM(bucketPrompt);
   } catch (e) {
     console.error(`Failed to generate bucket for ${category}:`, e);
     return { angle: category, static_ads: [] };

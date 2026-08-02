@@ -39,8 +39,8 @@ export default function DebugModal({ onClose }: { onClose: () => void }) {
       addLog("1. UPLOAD", "⚠️ Aucune image fournie. Test avec texte uniquement.");
     }
 
-    // STEP 2: SKELETON (MINIMAX)
-    addLog("2. SKELETON (MINIMAX)", "Demande de stratégie...");
+    // STEP 2: SKELETON (CLAUDE 3.5)
+    addLog("2. SKELETON (CLAUDE 3.5)", "Demande de stratégie...");
     let skeletonData = null;
     try {
       const res = await fetch('/api/generate-skeleton', {
@@ -58,15 +58,15 @@ export default function DebugModal({ onClose }: { onClose: () => void }) {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.details || data.error || "Skeleton failed");
       
-      skeletonData = data.skeleton;
-      addLog("2. SKELETON (MINIMAX)", "✅ Succès ! Le JSON est bien formatté.", skeletonData);
+      skeletonData = data;
+      addLog("2. SKELETON (CLAUDE 3.5)", "✅ Succès ! Le JSON est bien formatté.", skeletonData);
     } catch (e: any) {
-      addLog("2. SKELETON (MINIMAX)", "❌ ÉCHEC JSON MiniMax", e.message, true);
+      addLog("2. SKELETON (CLAUDE 3.5)", "❌ ÉCHEC JSON Claude 3.5", e.message, true);
       return;
     }
 
-    // STEP 3: BUCKET (MINIMAX)
-    addLog("3. BUCKET (MINIMAX)", "Demande d'une pub...");
+    // STEP 3: BUCKET (CLAUDE 3.5)
+    addLog("3. BUCKET (CLAUDE 3.5)", "Demande d'une pub...");
     let promptKie = "A simple red apple on a white background, highly detailed";
     try {
       const res = await fetch('/api/generate-bucket', {
