@@ -89,16 +89,19 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       if (isApiFinished) {
         finishGeneration();
       } else {
-        // Wait gracefully on last step until API finishes
-        stepTimerRef.current = setTimeout(() => {
+        // Poll continuously every 500ms on last step until API finishes
+        clearInterval(stepTimerRef.current);
+        stepTimerRef.current = setInterval(() => {
           if (isApiDoneRef.current) {
+            clearInterval(stepTimerRef.current);
             finishGeneration();
           }
-        }, 2000);
+        }, 500);
       }
     } else {
-      // Step pace: ~9.5s per step normally (65s total cycle), or ~1.2s if API already finished
-      const nextDelay = isApiFinished ? 1200 : 9500;
+      // Step pace: ~8.5s per step normally, or ~1.2s if API already finished
+      const nextDelay = isApiFinished ? 1200 : 8500;
+      clearTimeout(stepTimerRef.current);
       stepTimerRef.current = setTimeout(() => {
         advanceStep(stepIdx + 1);
       }, nextDelay);
@@ -106,16 +109,19 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
   };
 
   const finishGeneration = () => {
+    clearInterval(stepTimerRef.current);
     clearInterval(progressTimerRef.current);
     setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
+    setCurrentStepIndex(LOADING_STEPS_EN.length - 1);
     setProgressPercent(100);
+
     setTimeout(() => {
       setIsGenerating(false);
       if (pendingResultsRef.current && pendingResultsRef.current.length > 0) {
         setResultCreatives(pendingResultsRef.current);
       }
       fetchHistory();
-    }, 700);
+    }, 500);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -133,18 +139,18 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     clearInterval(progressTimerRef.current);
     progressTimerRef.current = setInterval(() => {
       setProgressPercent(prev => {
-        const target = STEP_PROGRESS_TARGETS[currentStepIndex] || 95;
+        const target = STEP_PROGRESS_TARGETS[currentStepIndex] || 96;
         if (isApiDoneRef.current) {
-          return prev < 98 ? prev + 2 : prev;
+          return prev < 99 ? prev + 1.5 : 100;
         }
         if (prev < target) {
-          return prev + 1;
+          return prev + 0.8;
         }
         return prev;
       });
-    }, 400);
+    }, 300);
 
-    // Start realistic 9.5s step timer chain
+    // Start realistic step timer chain
     advanceStep(0);
 
     try {
@@ -174,8 +180,12 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       pendingResultsRef.current = data.items || [data.item];
       isApiDoneRef.current = true;
 
+      // Force instant finish trigger if steps reached last step
+      finishGeneration();
+
     } catch (e: any) {
       console.error(e);
+      clearInterval(stepTimerRef.current);
       clearTimeout(stepTimerRef.current);
       clearInterval(progressTimerRef.current);
       alert('Error: ' + (e.message || 'Generation failed'));
