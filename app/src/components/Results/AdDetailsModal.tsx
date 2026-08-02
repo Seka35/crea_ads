@@ -65,11 +65,17 @@ export function AdDetailsModal({ ad, imageState, clientLogoUrl, clientInstaHandl
           </button>
         </div>
 
-        {/* Content */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden', flexWrap: 'wrap' }}>
+        {/* Content Body - Full vertical scrolling support */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))',
+          flex: 1, overflowY: 'auto', maxHeight: 'calc(90vh - 70px)'
+        }}>
           
           {/* Left: Instagram Mockup */}
-          <div style={{ flex: '1 1 400px', padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', overflowY: 'auto', background: 'rgba(0,0,0,0.3)' }}>
+          <div style={{
+            padding: '2rem', display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+            overflowY: 'auto', background: 'rgba(0,0,0,0.3)', minHeight: '100%'
+          }}>
             <div style={{ 
               width: '100%', maxWidth: '380px', background: '#ffffff', borderRadius: '12px', 
               boxShadow: '0 8px 24px rgba(0,0,0,0.2)', color: '#000000', overflow: 'hidden', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'
@@ -159,7 +165,10 @@ export function AdDetailsModal({ ad, imageState, clientLogoUrl, clientInstaHandl
           </div>
 
           {/* Right: Data & Text details */}
-          <div style={{ flex: '1 1 400px', padding: '2rem', overflowY: 'auto', borderLeft: '1px solid var(--border-light)' }}>
+          <div style={{
+            padding: '2rem', overflowY: 'auto', borderLeft: '1px solid var(--border-light)',
+            display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '100%'
+          }}>
             
             <div style={{ marginBottom: '2rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
