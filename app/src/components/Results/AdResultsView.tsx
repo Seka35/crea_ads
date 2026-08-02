@@ -60,7 +60,11 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
       {skeleton && (
         <div className="glass" style={{ padding: '2rem', marginBottom: '3rem' }}>
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Campaign DNA (Skeleton)</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{skeleton.strategy}</p>
+          <div style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', whiteSpace: 'pre-wrap' }}>
+            {typeof skeleton.strategy === 'string' 
+              ? skeleton.strategy 
+              : JSON.stringify(skeleton.strategy, null, 2)}
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
