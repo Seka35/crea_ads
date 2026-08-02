@@ -113,8 +113,8 @@ export function AdCard({ ad, imageState, onRetryImage }: AdCardProps) {
           <Eye size={14} /> Text Overlays
         </h4>
         <div style={{ background: 'rgba(99, 102, 241, 0.05)', border: '1px solid var(--border-light)', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
-          <p style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.25rem' }}>"{ad.text_overlay.hook_line}"</p>
-          {ad.text_overlay.support_line && (
+          <p style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.25rem' }}>"{ad.text_overlay?.hook_line || ad.headline || 'No hook provided'}"</p>
+          {ad.text_overlay?.support_line && (
             <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{ad.text_overlay.support_line}</p>
           )}
         </div>
