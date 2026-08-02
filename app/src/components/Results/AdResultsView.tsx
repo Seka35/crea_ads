@@ -1,7 +1,8 @@
 
-import type { StaticAd } from './AdCard';
 import { AdCard } from './AdCard';
+import { AdDetailsModal } from './AdDetailsModal';
 import { Layers, Download } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface Bucket {
   angle: string;
@@ -33,6 +34,8 @@ interface AdResultsViewProps {
 }
 
 export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, onSaveHistory, onExport }: AdResultsViewProps) {
+  const [selectedAd, setSelectedAd] = useState<StaticAd | null>(null);
+
   if (!skeleton && buckets.length === 0) {
     return null;
   }
@@ -106,17 +109,26 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
             gap: '1.5rem',
             alignItems: 'stretch'
           }}>
-            {bucket.static_ads.map((ad) => (
+            {bucket.static_ads.map((ad, adIndex) => (
               <AdCard 
-                key={ad.id} 
+                key={adIndex} 
                 ad={ad} 
-                imageState={adImages[ad.id]}
-                onRetryImage={() => onRetryImage?.(ad.id, ad.prompt)}
+                imageState={adImages[ad.id]} 
+                onRetryImage={() => onRetryImage?.(ad.id, ad.prompt)} 
+                onExpand={(clickedAd) => setSelectedAd(clickedAd)}
               />
             ))}
           </div>
         </div>
       ))}
+      {/* Full Ad Details Modal */}
+      {selectedAd && (
+        <AdDetailsModal 
+          ad={selectedAd} 
+          imageState={adImages[selectedAd.id]} 
+          onClose={() => setSelectedAd(null)} 
+        />
+      )}
     </div>
   );
 }

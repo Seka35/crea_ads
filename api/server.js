@@ -12,6 +12,28 @@ const app = express();
 
 const { getHistory, getHistoryById, saveHistory, deleteHistory } = require('./controllers/history');
 
+
+
+const PORT = process.env.PORT || 3000;
+const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// Auth Middleware (protects /api endpoints)
+const checkAuth = (req, res, next) => {
+  if (req.path.startsWith('/api/') && !req.path.startsWith('/api/uploads')) {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== process.env.PASSWORD) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid password' });
+    }
+  }
+  next();
+};
+app.use(checkAuth);
+
 app.get('/api/history', (req, res) => {
   res.json(getHistory());
 });
@@ -34,26 +56,6 @@ app.delete('/api/history/:id', (req, res) => {
   deleteHistory(req.params.id);
   res.json({ success: true });
 });
-
-const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
-
-// Middleware
-app.use(cors());
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Auth Middleware (protects /api endpoints)
-const checkAuth = (req, res, next) => {
-  if (req.path.startsWith('/api/') && !req.path.startsWith('/api/uploads')) {
-    const authHeader = req.headers.authorization;
-    if (authHeader !== process.env.PASSWORD) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid password' });
-    }
-  }
-  next();
-};
-app.use(checkAuth);
 
 // Setup Multer for image uploads
 const storage = multer.diskStorage({

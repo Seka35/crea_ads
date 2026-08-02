@@ -22,28 +22,38 @@ interface AdCardProps {
   ad: StaticAd;
   imageState?: AdImageState;
   onRetryImage: () => void;
+  onExpand?: (ad: StaticAd) => void;
 }
 
-export function AdCard({ ad, imageState, onRetryImage }: AdCardProps) {
+export function AdCard({ ad, imageState, onRetryImage, onExpand }: AdCardProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
   return (
-    <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ 
-          fontSize: '0.75rem', 
-          fontWeight: 600, 
-          padding: '0.25rem 0.75rem', 
-          borderRadius: '999px',
-          background: 'rgba(99, 102, 241, 0.2)',
-          color: 'var(--accent-primary)',
-          textTransform: 'uppercase'
-        }}>
-          {ad.angle} • {ad.format}
-        </span>
-        <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>ID: {ad.id}</span>
+    <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%', position: 'relative' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span style={{ 
+            fontSize: '0.75rem', 
+            fontWeight: 600, 
+            padding: '0.25rem 0.75rem', 
+            borderRadius: '999px',
+            background: 'rgba(99, 102, 241, 0.2)',
+            color: 'var(--accent-primary)',
+            textTransform: 'uppercase'
+          }}>
+            {ad.angle} • {ad.format}
+          </span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>ID: {ad.id}</span>
+        </div>
+        <button 
+          onClick={() => onExpand?.(ad)} 
+          className="btn btn-secondary" 
+          style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}
+        >
+          Agrandir / Mockup
+        </button>
       </div>
 
       <div style={{ flex: 1 }}>
