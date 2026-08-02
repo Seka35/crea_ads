@@ -16,7 +16,7 @@ const LOADING_STEPS_EN = [
   "Synthesizing Precision Copywriting (Headline & Primary Positioning)...",
   "Executing High-Definition Visual Composition & Lighting Pass...",
   "Applying Custom Brand Assets, Typographic Overlays & Aspect Ratios...",
-  "Final Quality Control & Encrypted Render Delivery (~1-2 min)..."
+  "Final Quality Control & Encrypted Render Delivery (~2-5 min)..."
 ];
 
 const STEP_PROGRESS_TARGETS = [14, 28, 42, 56, 70, 84, 96];
@@ -508,7 +508,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               Proprietary Engine Processing...
             </h3>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', margin: '0 0 1.25rem 0' }}>
-              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name} (~1-2 min estimated)
+              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name} (~2-5 min estimated)
             </p>
 
             {/* Live Active Pulse Badge */}
@@ -518,7 +518,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
             </div>
 
             {/* Progress Bar Container */}
-            <div style={{ width: '100%', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '14px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ width: '100%', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '14px', overflow: 'hidden', marginBottom: '1.75rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{
                 height: '100%', width: `${progressPercent.toFixed(1)}%`, borderRadius: '100px',
                 background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
@@ -526,27 +526,29 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               }} />
             </div>
 
-            {/* Multi-step Status Logs */}
+            {/* Multi-step Status Logs - All steps visible without scrolling */}
             <div style={{
-              width: '100%', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1.25rem',
-              textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '180px', overflowY: 'auto',
+              width: '100%', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1.25rem 1.5rem',
+              textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.65rem',
               border: '1px solid rgba(255,255,255,0.05)'
             }}>
               {LOADING_STEPS_EN.map((step, idx) => {
                 const isDone = completedSteps.includes(idx);
                 const isCurrent = currentStepIndex === idx;
-                if (idx > currentStepIndex) return null;
+                const isFuture = idx > currentStepIndex;
 
                 return (
                   <div key={idx} style={{
                     display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem',
-                    color: isCurrent ? '#ffffff' : isDone ? '#4ade80' : 'var(--text-tertiary)',
-                    opacity: isCurrent ? 1 : 0.85, transition: 'all 0.3s'
+                    color: isCurrent ? '#ffffff' : isDone ? '#4ade80' : 'rgba(255,255,255,0.35)',
+                    opacity: isFuture ? 0.45 : 1, transition: 'all 0.3s'
                   }}>
                     {isDone ? (
                       <CheckCircle2 size={16} color="#4ade80" />
-                    ) : (
+                    ) : isCurrent ? (
                       <div className="spinner" style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.2)', borderTop: '2px solid var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <div style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }} />
                     )}
                     <span style={{ fontWeight: isCurrent ? 600 : 400 }}>{step}</span>
                   </div>
