@@ -162,17 +162,18 @@ app.get('/api/client-history/:clientId', (req, res) => {
 });
 
 app.post('/api/client-generate', async (req, res) => {
-  try {
-    const { clientId, promptInput, isPostMode, price, currency, aspectRatio } = req.body;
+  try {    const { clientId, promptInput, isPostMode, price, currency, aspectRatio, count = 1 } = req.body;
     
     if (!clientId) {
-      return res.status(400).json({ error: 'clientId required' });
+      return res.status(400).json({ error: 'Missing clientId' });
     }
     
     const client = getClientById(clientId);
     if (!client) {
       return res.status(404).json({ error: 'Client not found' });
     }
+
+    const numCount = Math.min(Math.max(parseInt(count) || 1, 1), 5);
 
     // Combine Client preset settings + User prompt input
     const formData = {
@@ -185,7 +186,7 @@ app.post('/api/client-generate', async (req, res) => {
       awarenessLevel: client.awarenessLevel || 'solution_aware',
       uniqueMechanism: client.uniqueMechanism || '',
       bigIdea: promptInput ? `${client.defaultPrompt ? client.defaultPrompt + '\n' : ''}${promptInput}` : (client.bigIdea || client.defaultPrompt || ''),
-      adsPerCategory: 1,
+      adsPerCategory: numCount,
       isPostMode: !!isPostMode
     };
 
@@ -195,52 +196,54 @@ app.post('/api/client-generate', async (req, res) => {
       : (isPostMode ? 'organic_native' : 'solution_aware');
     const bucket = await generateBucket(formData, category);
 
-    const staticAd = (bucket.static_ads && bucket.static_ads.length > 0) ? bucket.static_ads[0] : {
-      id: `client_ad_${Date.now()}`,
-      angle: category,
-      format: 'Static',
-      visual_style: 'Professional modern creative',
-      hero_element: client.name,
-      text_overlay: {
-        hook_line: promptInput ? promptInput.substring(0, 40) : client.name,
-        support_line: isPostMode ? '' : `${formData.currency}${formData.price}`
-      },
-      prompt: `High converting professional social media post visual for ${client.name}. ${promptInput || ''}. Clean modern graphic design.`,
-      primary_text: promptInput ? `${promptInput}\n\nDiscover our exclusive offer.` : `Discover the latest from ${client.name}!`,
-      headline: promptInput ? promptInput.split('.')[0].substring(0, 50) : client.name
-    };
+    const adsToGenerate = (bucket.static_ads && bucket.static_ads.length > 0) 
+      ? bucket.static_ads.slice(0, numCount)
+      : Array.from({ length: numCount }, (_, i) => ({
+          id: `client_ad_${Date.now()}_${i}`,
+          angle: category,
+          format: 'Static',
+          visual_style: 'Professional modern creative',
+          hero_element: client.name,
+          text_overlay: {
+            hook_line: promptInput ? promptInput.substring(0, 40) : `${client.name} Variant ${i+1}`,
+            support_line: isPostMode ? '' : `${formData.currency}${formData.price}`
+          },
+          prompt: `High converting professional social media post visual for ${client.name}. ${promptInput || ''}. Clean modern graphic design variant ${i+1}.`,
+          primary_text: promptInput ? `${promptInput}\n\nDiscover our exclusive offer.` : `Discover the latest from ${client.name}!`,
+          headline: promptInput ? promptInput.split('.')[0].substring(0, 50) : `${client.name} Creative ${i+1}`
+        }));
 
-    // Overlay text preparation
-    let overlayText = typeof staticAd.text_overlay === 'string' ? staticAd.text_overlay : (staticAd.text_overlay?.hook_line || '');
-    if (!isPostMode && formData.price) {
-      overlayText += ` - ${formData.currency}${formData.price}`;
-    }
-
-    const fullImagePrompt = `${staticAd.prompt} IMPORTANT: You must write this exact text typography prominently in the image: "${overlayText}". Place the text in the upper or center area of the image ONLY — never in the bottom third.`;
-
-    // Input reference images
     const inputUrls = client.referenceImages && client.referenceImages.length > 0 ? client.referenceImages : [];
 
-    // Generate the Image using KIE API with selected aspect ratio
-    const imageUrl = await generateImage(fullImagePrompt, inputUrls, aspectRatio || "1:1");
+    // Generate Images in parallel for all requested creatives
+    const historyItems = await Promise.all(adsToGenerate.map(async (staticAd, index) => {
+      let overlayText = typeof staticAd.text_overlay === 'string' ? staticAd.text_overlay : (staticAd.text_overlay?.hook_line || '');
+      if (!isPostMode && formData.price) {
+        overlayText += ` - ${formData.currency}${formData.price}`;
+      }
 
-    // Save to Client History
-    const historyItem = saveClientCreative({
-      clientId,
-      creative: staticAd,
-      imageUrl,
-      aspectRatio: aspectRatio || "1:1",
-      isPostMode: !!isPostMode,
-      price: formData.price,
-      currency: formData.currency,
-      promptInput,
-      clientLogoUrl: client.logoUrl,
-      clientInstaHandle: client.instaHandle
-    });
+      const fullImagePrompt = `${staticAd.prompt} IMPORTANT: You must write this exact text typography prominently in the image: "${overlayText}". Place the text in the upper or center area of the image ONLY — never in the bottom third.`;
+      
+      const imageUrl = await generateImage(fullImagePrompt, inputUrls, aspectRatio || "1:1");
+
+      return saveClientCreative({
+        clientId,
+        creative: staticAd,
+        imageUrl,
+        aspectRatio: aspectRatio || "1:1",
+        isPostMode: !!isPostMode,
+        price: formData.price,
+        currency: formData.currency,
+        promptInput,
+        clientLogoUrl: client.logoUrl,
+        clientInstaHandle: client.instaHandle
+      });
+    }));
 
     res.json({
       success: true,
-      item: historyItem
+      items: historyItems,
+      item: historyItems[0]
     });
 
   } catch (error) {

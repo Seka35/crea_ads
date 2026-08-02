@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Cpu } from 'lucide-react';
+import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Cpu, Layers } from 'lucide-react';
 import { AdDetailsModal } from '../Results/AdDetailsModal';
 import { AspectRatioSelector } from '../Form/AspectRatioSelector';
 import type { ClientProfile } from './ClientManagementModal';
@@ -25,6 +25,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
   const [promptInput, setPromptInput] = useState('');
   const [isPostMode, setIsPostMode] = useState(false);
   const [aspectRatio, setAspectRatio] = useState(client.defaultAspectRatio || '1:1');
+  const [creativeCount, setCreativeCount] = useState<number>(1);
   const [price, setPrice] = useState(client.price || '47');
   const [currency] = useState(client.currency || '$');
 
@@ -33,14 +34,15 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
   const [progressPercent, setProgressPercent] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
-  const [resultCreative, setResultCreative] = useState<any>(null);
+  const [resultCreatives, setResultCreatives] = useState<any[]>([]);
   const [selectedMockupCreative, setSelectedMockupCreative] = useState<any>(null);
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [clientHistory, setClientHistory] = useState<any[]>([]);
 
-  const pendingResultRef = useRef<any>(null);
+  const pendingResultsRef = useRef<any[]>([]);
   const stepTimerRef = useRef<any>(null);
+  const progressTimerRef = useRef<any>(null);
   const isApiDoneRef = useRef<boolean>(false);
 
   const fetchHistory = async () => {
@@ -62,9 +64,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     fetchHistory();
   }, [client.id]);
 
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(stepTimerRef.current);
+      clearInterval(progressTimerRef.current);
+    };
+  }, []);
+
   const advanceStep = (stepIdx: number) => {
     setCurrentStepIndex(stepIdx);
-    setProgressPercent(STEP_PROGRESS_TARGETS[stepIdx] || 95);
     
     // Mark previous steps as completed
     const completed = [];
@@ -73,25 +82,23 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     }
     setCompletedSteps(completed);
 
-    // Calculate delay for next step
     const isApiFinished = isApiDoneRef.current;
     const isLastStep = stepIdx >= LOADING_STEPS_EN.length - 1;
 
     if (isLastStep) {
       if (isApiFinished) {
-        // All steps & API complete!
         finishGeneration();
       } else {
-        // Waiting for API to finish on last step
+        // Wait gracefully on last step until API finishes
         stepTimerRef.current = setTimeout(() => {
           if (isApiDoneRef.current) {
             finishGeneration();
           }
-        }, 1500);
+        }, 2000);
       }
     } else {
-      // Move to next step (fast-forward if API finished, otherwise normal 5.5s pace)
-      const nextDelay = isApiFinished ? 1200 : 5500;
+      // Step pace: ~9.5s per step normally (65s total cycle), or ~1.2s if API already finished
+      const nextDelay = isApiFinished ? 1200 : 9500;
       stepTimerRef.current = setTimeout(() => {
         advanceStep(stepIdx + 1);
       }, nextDelay);
@@ -99,29 +106,45 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
   };
 
   const finishGeneration = () => {
+    clearInterval(progressTimerRef.current);
     setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
     setProgressPercent(100);
     setTimeout(() => {
       setIsGenerating(false);
-      if (pendingResultRef.current) {
-        setResultCreative(pendingResultRef.current);
+      if (pendingResultsRef.current && pendingResultsRef.current.length > 0) {
+        setResultCreatives(pendingResultsRef.current);
       }
       fetchHistory();
-    }, 600);
+    }, 700);
   };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setIsGenerating(true);
-    setResultCreative(null);
-    pendingResultRef.current = null;
+    setResultCreatives([]);
+    pendingResultsRef.current = [];
     isApiDoneRef.current = false;
     setCurrentStepIndex(0);
-    setProgressPercent(8);
+    setProgressPercent(4);
     setCompletedSteps([]);
 
-    // Start realistic step timer chain
+    // Continuous ultra-smooth progress bar ticker
+    clearInterval(progressTimerRef.current);
+    progressTimerRef.current = setInterval(() => {
+      setProgressPercent(prev => {
+        const target = STEP_PROGRESS_TARGETS[currentStepIndex] || 95;
+        if (isApiDoneRef.current) {
+          return prev < 98 ? prev + 2 : prev;
+        }
+        if (prev < target) {
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 400);
+
+    // Start realistic 9.5s step timer chain
     advanceStep(0);
 
     try {
@@ -137,7 +160,8 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
           isPostMode,
           price: isPostMode ? undefined : price,
           currency,
-          aspectRatio
+          aspectRatio,
+          count: creativeCount
         })
       });
 
@@ -147,12 +171,13 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       }
 
       const data = await res.json();
-      pendingResultRef.current = data.item;
+      pendingResultsRef.current = data.items || [data.item];
       isApiDoneRef.current = true;
 
     } catch (e: any) {
       console.error(e);
       clearTimeout(stepTimerRef.current);
+      clearInterval(progressTimerRef.current);
       alert('Error: ' + (e.message || 'Generation failed'));
       setIsGenerating(false);
     }
@@ -213,16 +238,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       </header>
 
       {/* Main Container */}
-      <main className="container" style={{ flex: 1, padding: '3rem 1.5rem', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+      <main className="container" style={{ flex: 1, padding: '3rem 1.5rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
         
         {/* Form Card */}
         <div className="glass-card" style={{ padding: '2.5rem', marginBottom: '3rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-              Generate Your Creative Asset ✨
+              Generate Your Creative Assets ✨
             </h2>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem' }}>
-              Select your format and option details. Leave prompt empty to use your default brand strategy.
+              Select your format and number of variations. Leave prompt blank to use your default brand strategy.
             </p>
           </div>
 
@@ -256,12 +281,40 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               </button>
             </div>
 
-            {/* Aspect Ratio Selector with Proportional Box Preview Icons */}
-            <div className="form-group">
-              <label style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
-                Image Aspect Ratio / Format
-              </label>
-              <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
+            {/* Quantity & Format Selection Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              {/* Aspect Ratio Selector */}
+              <div className="form-group">
+                <label style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                  Image Format / Aspect Ratio
+                </label>
+                <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
+              </div>
+
+              {/* Creative Quantity Picker */}
+              <div className="form-group">
+                <label style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Layers size={16} color="var(--accent-primary)" /> Number of Creatives to Generate
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {[1, 2, 3, 5].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setCreativeCount(num)}
+                      style={{
+                        flex: 1, padding: '0.65rem 0.5rem', borderRadius: 'var(--radius-sm)',
+                        border: creativeCount === num ? '2px solid var(--accent-primary)' : '1px solid var(--border-light)',
+                        background: creativeCount === num ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.02)',
+                        color: creativeCount === num ? '#ffffff' : 'var(--text-secondary)',
+                        fontWeight: creativeCount === num ? 700 : 500, cursor: 'pointer', transition: 'all 0.2s'
+                      }}
+                    >
+                      {num} {num === 1 ? 'Asset' : 'Assets'}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {!isPostMode && (
@@ -305,58 +358,60 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               }}
             >
               <Sparkles size={22} />
-              Generate My Creative
+              Generate {creativeCount} Creative{creativeCount > 1 ? 's' : ''}
             </button>
           </form>
         </div>
 
-        {/* Latest Result Card */}
-        {resultCreative && (
-          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--accent-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <CheckCircle2 color="var(--success)" /> Your Creative is Ready!
+        {/* Latest Results Section */}
+        {resultCreatives.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+              <CheckCircle2 color="var(--success)" /> {resultCreatives.length} Creative{resultCreatives.length > 1 ? 's' : ''} Ready!
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', alignItems: 'start' }}>
-              
-              {/* Image Preview Container */}
-              <div style={{ width: '100%', aspectRatio: '1/1', background: '#000', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src={resultCreative.imageUrl} alt="Result" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: resultCreatives.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(420px, 1fr))', gap: '2rem' }}>
+              {resultCreatives.map((item, idx) => (
+                <div key={item.id || idx} className="glass-card" style={{ padding: '1.75rem', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  
+                  <div style={{ width: '100%', aspectRatio: '1/1', background: '#000', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src={item.imageUrl} alt={`Result ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </div>
 
-              {/* Details & Actions */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                <div>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', textTransform: 'uppercase', fontWeight: 700 }}>
-                    {resultCreative.isPostMode ? 'Organic Post' : `Sponsored Ad (${resultCreative.currency}${resultCreative.price})`} • Format {resultCreative.aspectRatio || '1:1'}
-                  </span>
-                  <h4 style={{ fontSize: '1.25rem', margin: '0.25rem 0 0.5rem 0' }}>
-                    {resultCreative.creative?.headline || 'Visual Asset'}
-                  </h4>
-                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
-                    {resultCreative.creative?.primary_text}
-                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', flex: 1, justifyContent: 'space-between' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', textTransform: 'uppercase', fontWeight: 700 }}>
+                        Option #{idx + 1} • {item.isPostMode ? 'Organic Post' : `Ad (${item.currency}${item.price})`} • Format {item.aspectRatio || '1:1'}
+                      </span>
+                      <h4 style={{ fontSize: '1.15rem', margin: '0.25rem 0 0.5rem 0' }}>
+                        {item.creative?.headline || `Creative Visual #${idx + 1}`}
+                      </h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                        {item.creative?.primary_text}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
+                      <button 
+                        onClick={() => setSelectedMockupCreative(item)}
+                        className="btn btn-secondary"
+                        style={{ flex: 1, padding: '0.65rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontWeight: 600 }}
+                      >
+                        <Eye size={16} /> Mockup
+                      </button>
+
+                      <button 
+                        onClick={() => handleDownload(item.imageUrl, item.creative?.headline)}
+                        className="btn btn-primary"
+                        style={{ flex: 1, padding: '0.65rem 0.75rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontWeight: 600 }}
+                      >
+                        <Download size={16} /> Download
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
-
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                  <button 
-                    onClick={() => setSelectedMockupCreative(resultCreative)}
-                    className="btn btn-secondary"
-                    style={{ flex: 1, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}
-                  >
-                    <Eye size={18} /> View in Instagram Mockup
-                  </button>
-
-                  <button 
-                    onClick={() => handleDownload(resultCreative.imageUrl, resultCreative.creative?.headline)}
-                    className="btn btn-primary"
-                    style={{ flex: 1, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}
-                  >
-                    <Download size={18} /> Download Image
-                  </button>
-                </div>
-              </div>
-
+              ))}
             </div>
           </div>
         )}
@@ -392,23 +447,27 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
                 animation: 'spin 2s linear infinite reverse'
               }} />
               <Cpu size={36} color="var(--accent-primary)" />
-            </div>
-
-            <h3 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               High-Performance Processing...
             </h3>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-              Optimizing your creative visual asset
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for your brand
             </p>
 
-            {/* Progress Bar Container */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '12px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{
-                height: '100%', width: `${progressPercent}%`, borderRadius: '100px',
-                background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
-                transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
-              }} />
+            {/* Live Active Pulse Badge */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', borderRadius: '100px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#a5b4fc', fontSize: '0.82rem', marginBottom: '1.75rem' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', display: 'inline-block', boxShadow: '0 0 10px #4ade80', animation: 'pulse 1.5s infinite' }} />
+              <span>AI Neural Pipeline active • Please stay on this page</span>
             </div>
+
+            {/* Progress Bar Container */}
+            <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '14px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{
+                height: '100%', width: `${progressPercent.toFixed(1)}%`, borderRadius: '100px',
+                background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
+                transition: 'width 0.3s ease-out', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
+              }} />
+            </div>        </div>
 
             {/* Multi-step Status Logs */}
             <div style={{
