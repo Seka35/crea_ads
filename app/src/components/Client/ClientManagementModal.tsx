@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Edit, Upload, UserCheck, Shield, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, Trash2, Edit, Upload, UserCheck, Shield, Sparkles, Image as ImageIcon, FileText } from 'lucide-react';
 import { AspectRatioSelector } from '../Form/AspectRatioSelector';
 
 export interface ClientProfile {
@@ -18,6 +18,7 @@ export interface ClientProfile {
   defaultAspectRatio: string;
   uniqueMechanism: string;
   bigIdea: string;
+  brandDoc?: string;
   referenceImages: string[];
   price: string;
   currency: string;
@@ -49,6 +50,7 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
     defaultAspectRatio: '1:1',
     uniqueMechanism: '',
     bigIdea: '',
+    brandDoc: '',
     referenceImages: [],
     price: '47',
     currency: '$'
@@ -130,6 +132,20 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
     } finally {
       setIsUploadingRef(false);
     }
+  };
+
+  const handleBrandDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        setEditingClient(prev => prev ? { ...prev, brandDoc: text } : null);
+      }
+    };
+    reader.readAsText(file);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -384,6 +400,29 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                     <textarea rows={2} value={editingClient.bigIdea || ''} onChange={e => setEditingClient({ ...editingClient, bigIdea: e.target.value })} placeholder="Core campaign big idea..." />
                   </div>
 
+                  {/* Brand Art Direction & Guidelines (.md / .txt Upload) */}
+                  <div className="form-group" style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px dashed rgba(99, 102, 241, 0.3)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <label style={{ margin: 0, fontWeight: 600, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FileText size={16} /> Guide Direction Artistique & DA (.md / .txt)
+                      </label>
+                      <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.35rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <Upload size={13} /> Upload Fichier .md / .txt
+                        <input type="file" accept=".md,.txt,.markdown" onChange={handleBrandDocUpload} style={{ display: 'none' }} />
+                      </label>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', margin: '0 0 0.5rem 0' }}>
+                      Importez ou collez la charte graphique de la marque (codes couleurs hex, ton de voix, règles visuelles, présentation entreprise). L'IA adaptera 100% des visuels et accroches à ce document.
+                    </p>
+                    <textarea 
+                      rows={5} 
+                      value={editingClient.brandDoc || ''} 
+                      onChange={e => setEditingClient({ ...editingClient, brandDoc: e.target.value })} 
+                      placeholder="# Charte Graphique BullSwipe&#10;- Couleurs: Noir (#080A14), Violet Neon (#6366F1), Rose (#EC4899)&#10;- Style Visuel: Carte physique crypto, sans contact, ambiance tech moderne." 
+                      style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+                    />
+                  </div>
+
                 </div>
 
               </div>
@@ -447,6 +486,7 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                           <div><strong>Password:</strong> {client.password}</div>
                           <div><strong>Default Angle:</strong> {client.categorySelection || 'Auto Best-Fit'}</div>
                           <div><strong>Default Format:</strong> {client.defaultAspectRatio || '1:1'}</div>
+                          <div><strong>Brand Guide (.md):</strong> {client.brandDoc ? <span style={{ color: '#4ade80', fontWeight: 600 }}>Active ✓</span> : <span style={{ opacity: 0.5 }}>None</span>}</div>
                           <div><strong>Assets:</strong> {client.referenceImages?.length || 0} image(s)</div>
                         </div>
                       </div>

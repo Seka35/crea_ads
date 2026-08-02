@@ -72,6 +72,7 @@ function saveClient(clientData) {
       awarenessLevel: clientData.awarenessLevel || 'solution_aware',
       uniqueMechanism: clientData.uniqueMechanism || '',
       bigIdea: clientData.bigIdea || '',
+      brandDoc: clientData.brandDoc || '',
       referenceImages: clientData.referenceImages || [],
       price: clientData.price || '47',
       currency: clientData.currency || '€',

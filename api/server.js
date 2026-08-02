@@ -186,6 +186,7 @@ app.post('/api/client-generate', async (req, res) => {
       awarenessLevel: client.awarenessLevel || 'solution_aware',
       uniqueMechanism: client.uniqueMechanism || '',
       bigIdea: promptInput ? `${client.defaultPrompt ? client.defaultPrompt + '\n' : ''}${promptInput}` : (client.bigIdea || client.defaultPrompt || ''),
+      brandDoc: client.brandDoc || '',
       adsPerCategory: numCount,
       isPostMode: !!isPostMode
     };

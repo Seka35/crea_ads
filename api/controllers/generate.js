@@ -56,6 +56,8 @@ ${formData.isPostMode ? '' : `Price: ${formData.currency}${formData.price}`}
 AI_Strategy: ${formData.aiStrategy}
 Awareness_Level: ${formData.awarenessLevel}
 
+${formData.brandDoc ? `=== BRAND ART DIRECTION & GUIDELINES (DA) ===\n${formData.brandDoc}\n============================================` : ''}
+
 Return EXACTLY this JSON structure:
 {
   "strategy": "Your strategy paragraph...",
@@ -83,6 +85,8 @@ Output ONLY valid JSON (a 'static_ads' array).
 Product: ${formData.productName}
 Niche: ${formData.niche}
 ${formData.isPostMode ? 'THIS IS FOR ORGANIC SOCIAL POSTS. DO NOT include any price. DO NOT use salesy CTAs.' : `Price: ${formData.currency}${formData.price}`}
+
+${formData.brandDoc ? `=== BRAND ART DIRECTION & GUIDELINES (DA) ===\nSTRICTLY ADHERE TO THIS BRAND ART DIRECTION, COLOR CODES, TONE & VISUAL RULES:\n${formData.brandDoc}\n============================================` : ''}
 
 Return EXACTLY this JSON structure:
 {
