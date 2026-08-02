@@ -72,9 +72,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     };
   }, []);
 
+  const stepIndexRef = useRef(0);
+
   const advanceStep = (stepIdx: number) => {
     setCurrentStepIndex(stepIdx);
+    stepIndexRef.current = stepIdx;
     
+    // Ensure progress percent matches or exceeds step proportion
+    const minPercent = Math.round(((stepIdx + 1) / LOADING_STEPS_EN.length) * 92);
+    setProgressPercent(prev => Math.max(prev, minPercent - 10));
+
     // Mark previous steps as completed
     const completed = [];
     for (let i = 0; i < stepIdx; i++) {
@@ -113,6 +120,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     clearInterval(progressTimerRef.current);
     setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
     setCurrentStepIndex(LOADING_STEPS_EN.length - 1);
+    stepIndexRef.current = LOADING_STEPS_EN.length - 1;
     setProgressPercent(100);
 
     setTimeout(() => {
@@ -132,6 +140,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     pendingResultsRef.current = [];
     isApiDoneRef.current = false;
     setCurrentStepIndex(0);
+    stepIndexRef.current = 0;
     setProgressPercent(4);
     setCompletedSteps([]);
 
@@ -139,7 +148,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     clearInterval(progressTimerRef.current);
     progressTimerRef.current = setInterval(() => {
       setProgressPercent(prev => {
-        const target = STEP_PROGRESS_TARGETS[currentStepIndex] || 96;
+        const target = STEP_PROGRESS_TARGETS[stepIndexRef.current] || 96;
         if (isApiDoneRef.current) {
           return prev < 99 ? prev + 1.5 : 100;
         }
