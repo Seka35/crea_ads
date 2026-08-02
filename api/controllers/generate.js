@@ -51,7 +51,22 @@ ${formData.isPostMode ? '' : `Price: ${formData.currency}${formData.price}`}
 AI_Strategy: ${formData.aiStrategy}
 Awareness_Level: ${formData.awarenessLevel}
 
-Return the exact JSON structure defined in the doc for the Skeleton (strategy, campaign_dna, audiences, hook_map, angle_copy).
+Return EXACTLY this JSON structure:
+{
+  "strategy": "Your strategy paragraph...",
+  "campaign_dna": {
+    "visual_signature": {
+      "dominant_color": "Hex or color name",
+      "accent_color": "Hex or color name",
+      "lighting_mood": "e.g., moody, bright",
+      "texture_vibe": "e.g., matte, glossy"
+    },
+    "opening_pattern": "Pattern description"
+  },
+  "audiences": [],
+  "hook_map": [],
+  "angle_copy": []
+}
 `;
   return await callMiniMax(skeletonPrompt);
 }
@@ -64,7 +79,27 @@ Product: ${formData.productName}
 Niche: ${formData.niche}
 ${formData.isPostMode ? 'THIS IS FOR ORGANIC SOCIAL POSTS. DO NOT include any price. DO NOT use salesy CTAs.' : `Price: ${formData.currency}${formData.price}`}
 
-Return JSON like: { "angle": "${category}", "static_ads": [ { ... } ] }
+Return EXACTLY this JSON structure:
+{
+  "angle": "${category}",
+  "static_ads": [
+    {
+      "id": "ad_1",
+      "angle": "${category}",
+      "format": "Static",
+      "visual_style": "...",
+      "hook_visual": "...",
+      "hero_element": "...",
+      "text_overlay": {
+        "hook_line": "...",
+        "support_line": "..."
+      },
+      "prompt": "Highly detailed image generation prompt for KIE...",
+      "primary_text": "Meta ad copy...",
+      "headline": "Meta headline..."
+    }
+  ]
+}
 `;
   try {
     return await callMiniMax(bucketPrompt);

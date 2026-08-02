@@ -12,6 +12,9 @@ const app = express();
 app.post('/api/generate-image', async (req, res) => {
   try {
     const { prompt, input_urls } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Image generation failed', details: 'Prompt manquant. L\'IA n\'a pas généré de description pour cette image.' });
+    }
     const imageUrl = await generateImage(prompt, input_urls);
     res.json({ url: imageUrl });
   } catch (error) {
