@@ -439,13 +439,14 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
           <div className="glass-card" style={{
             width: '100%', maxWidth: '640px', padding: '3rem 2.5rem',
             textAlign: 'center', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.3)',
-            boxShadow: '0 0 80px rgba(99, 102, 241, 0.25)', position: 'relative', overflow: 'hidden'
+            boxShadow: '0 0 80px rgba(99, 102, 241, 0.25)', position: 'relative', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column', alignItems: 'center'
           }}>
             {/* Glowing top line */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)' }} />
 
             {/* Central Icon Spinner */}
-            <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 2rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 1.5rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{
                 position: 'absolute', width: '100%', height: '100%', borderRadius: '50%',
                 border: '3px solid transparent', borderTopColor: 'var(--accent-primary)', borderRightColor: '#a855f7',
@@ -457,10 +458,12 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
                 animation: 'spin 2s linear infinite reverse'
               }} />
               <Cpu size={36} color="var(--accent-primary)" />
-                  <h3 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            </div>
+
+            <h3 style={{ fontSize: '1.6rem', fontWeight: 700, margin: '0 0 0.5rem 0', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               Proprietary Engine Processing...
             </h3>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', margin: '0 0 1.25rem 0' }}>
               Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name}
             </p>
 
@@ -471,17 +474,17 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
             </div>
 
             {/* Progress Bar Container */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '14px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ width: '100%', background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '14px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div style={{
                 height: '100%', width: `${progressPercent.toFixed(1)}%`, borderRadius: '100px',
                 background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
                 transition: 'width 0.3s ease-out', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
               }} />
-            </div>        </div>
+            </div>
 
             {/* Multi-step Status Logs */}
             <div style={{
-              background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1.25rem',
+              width: '100%', background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1.25rem',
               textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '180px', overflowY: 'auto',
               border: '1px solid rgba(255,255,255,0.05)'
             }}>
