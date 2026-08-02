@@ -45,7 +45,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Auth Middleware (protects /api endpoints)
 const checkAuth = (req, res, next) => {
-  if (req.path.startsWith('/api/')) {
+  if (req.path.startsWith('/api/') && !req.path.startsWith('/api/uploads')) {
     const authHeader = req.headers.authorization;
     if (authHeader !== process.env.PASSWORD) {
       return res.status(401).json({ error: 'Unauthorized: Invalid password' });
