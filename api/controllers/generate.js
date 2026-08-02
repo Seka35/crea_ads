@@ -40,8 +40,7 @@ async function callMiniMax(promptContent) {
   return JSON.parse(rawText);
 }
 
-async function generateTextPipeline(formData) {
-  // Step 1: Generate Skeleton
+async function generateSkeleton(formData) {
   const skeletonPrompt = `
 You are producing the SKELETON of a creative brief for Meta Ads.
 Output ONLY valid JSON.
@@ -54,20 +53,11 @@ Awareness_Level: ${formData.awarenessLevel}
 
 Return the exact JSON structure defined in the doc for the Skeleton (strategy, campaign_dna, audiences, hook_map, angle_copy).
 `;
-  
-  const skeleton = await callMiniMax(skeletonPrompt);
+  return await callMiniMax(skeletonPrompt);
+}
 
-  // Step 2: Generate Buckets in parallel
-  // Normally 5 angles + 2 styles. For this example we map what is requested.
-  const allCategories = ['problem_aware', 'solution_aware', 'identity', 'social_proof', 'pattern_interrupt', 'pro_creative', 'organic_native'];
-  let categoriesToGenerate = allCategories;
-
-  if (formData.categorySelection && formData.categorySelection !== 'all') {
-    categoriesToGenerate = [formData.categorySelection];
-  }
-
-  const bucketPromises = categoriesToGenerate.map(async (category) => {
-    const bucketPrompt = `
+async function generateBucket(formData, category) {
+  const bucketPrompt = `
 You are producing EXACTLY ${formData.adsPerCategory} static ads for ONE specific angle/style: ${category}.
 Output ONLY valid JSON (a 'static_ads' array).
 Product: ${formData.productName}
@@ -76,18 +66,12 @@ ${formData.isPostMode ? 'THIS IS FOR ORGANIC SOCIAL POSTS. DO NOT include any pr
 
 Return JSON like: { "angle": "${category}", "static_ads": [ { ... } ] }
 `;
-    try {
-      const bucket = await callMiniMax(bucketPrompt);
-      return bucket;
-    } catch (e) {
-      console.error(`Failed to generate bucket for ${category}:`, e);
-      return { angle: category, static_ads: [] };
-    }
-  });
-
-  const buckets = await Promise.all(bucketPromises);
-
-  return { skeleton, buckets };
+  try {
+    return await callMiniMax(bucketPrompt);
+  } catch (e) {
+    console.error(`Failed to generate bucket for ${category}:`, e);
+    return { angle: category, static_ads: [] };
+  }
 }
 
-module.exports = { generateTextPipeline };
+module.exports = { generateSkeleton, generateBucket };

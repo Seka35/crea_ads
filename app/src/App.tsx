@@ -5,7 +5,7 @@ import { useAdGeneration } from './hooks/useAdGeneration';
 import { Zap, Lock } from 'lucide-react';
 
 function App() {
-  const { isGenerating, skeleton, buckets, error, generatePipeline, exportData } = useAdGeneration();
+  const { isGenerating, progressText, skeleton, buckets, error, generatePipeline, exportData } = useAdGeneration();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
 
@@ -78,7 +78,7 @@ function App() {
           </div>
         )}
 
-        <AdInputForm onGenerate={generatePipeline} isGenerating={isGenerating} />
+        <AdInputForm onGenerate={generatePipeline} isGenerating={isGenerating} progressText={progressText} />
         
         <AdResultsView 
           skeleton={skeleton} 

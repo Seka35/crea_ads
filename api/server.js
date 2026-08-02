@@ -5,7 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const { generateTextPipeline } = require('./controllers/generate');
+const { generateSkeleton, generateBucket } = require('./controllers/generate');
 const { generateImage } = require('./controllers/images');
 
 const app = express();
@@ -58,13 +58,24 @@ app.post('/api/upload', upload.array('images', 16), (req, res) => {
   }
 });
 
-app.post('/api/generate-text', async (req, res) => {
+app.post('/api/generate-skeleton', async (req, res) => {
   try {
-    const result = await generateTextPipeline(req.body);
-    res.json(result);
+    const skeleton = await generateSkeleton(req.body);
+    res.json({ skeleton });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Text generation failed', details: error.message });
+    res.status(500).json({ error: 'Skeleton generation failed', details: error.message });
+  }
+});
+
+app.post('/api/generate-bucket', async (req, res) => {
+  try {
+    const { formData, category } = req.body;
+    const bucket = await generateBucket(formData, category);
+    res.json(bucket);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Bucket generation failed', details: error.message });
   }
 });
 

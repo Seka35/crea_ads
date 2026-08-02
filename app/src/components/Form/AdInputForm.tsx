@@ -19,9 +19,10 @@ export interface AdGenerationData {
 interface AdInputFormProps {
   onGenerate: (data: AdGenerationData, files?: File[]) => void;
   isGenerating: boolean;
+  progressText?: string;
 }
 
-export function AdInputForm({ onGenerate, isGenerating }: AdInputFormProps) {
+export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputFormProps) {
   const [formData, setFormData] = useState<AdGenerationData>({
     productName: '',
     category: '',
@@ -184,11 +185,11 @@ export function AdInputForm({ onGenerate, isGenerating }: AdInputFormProps) {
           </div>
 
           <div style={{ marginTop: '2rem', textAlign: 'right' }}>
-            <button type="submit" className="btn btn-primary" disabled={isGenerating} style={{ width: '100%' }}>
+            <button type="submit" className="btn btn-primary" disabled={isGenerating} style={{ width: '100%', minHeight: '50px' }}>
               {isGenerating ? (
                 <>
                   <div className="spinner" style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid white', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                  Generating Pipeline...
+                  {progressText || 'Generating Pipeline...'}
                 </>
               ) : (
                 'Generate Creative Pipeline'

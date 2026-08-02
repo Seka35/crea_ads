@@ -13,8 +13,13 @@ export function ImageUploader({ onImagesChange }: ImageUploaderProps) {
   const handleFileChange = (files: FileList | null) => {
     if (!files) return;
     
-    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-    const newImages = [...images, ...validFiles].slice(0, 5); // Limit to 5 images
+    const newFiles = Array.from(files);
+    if (images.length + newFiles.length > 16) {
+      alert('You can only upload up to 16 images in total.');
+      return;
+    }
+    const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+    const newImages = [...images, ...validFiles].slice(0, 16); // Limit to 16 images
     setImages(newImages);
     onImagesChange(newImages);
   };
