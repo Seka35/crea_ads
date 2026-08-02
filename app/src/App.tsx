@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AdInputForm } from './components/Form/AdInputForm';
 import { AdResultsView } from './components/Results/AdResultsView';
 import { useAdGeneration } from './hooks/useAdGeneration';
-import { Zap, Lock, History, X } from 'lucide-react';
+import { Zap, Lock, History, X, Wrench } from 'lucide-react';
+import DebugModal from './components/DebugModal';
 
 function App() {
   const { isGenerating, progressText, skeleton, buckets, adImages, error, generatePipeline, exportData, retryImage, saveToHistory, loadFromHistory, getHistoryList } = useAdGeneration();
@@ -10,6 +11,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyList, setHistoryList] = useState<any[]>([]);
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
 
   useEffect(() => {
     if (isHistoryOpen) {
@@ -68,6 +70,14 @@ function App() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setIsDebugOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
+          >
+            <Wrench size={16} />
+            Debug KIE
+          </button>
           <button 
             className="btn btn-secondary" 
             onClick={() => setIsHistoryOpen(true)}
@@ -150,6 +160,10 @@ function App() {
             )}
           </div>
         </div>
+      )}
+
+      {isDebugOpen && (
+        <DebugModal onClose={() => setIsDebugOpen(false)} />
       )}
 
       <footer style={{ marginTop: '4rem', textAlign: 'center', color: 'var(--text-tertiary)', fontSize: '0.9rem', paddingBottom: '2rem' }}>
