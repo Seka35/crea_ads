@@ -165,31 +165,31 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
             <label>Big Idea</label>
             <textarea name="bigIdea" value={formData.bigIdea} onChange={handleChange} placeholder="One-liner big idea..." rows={2}></textarea>
           </div>
-
-          {/* Brand Art Direction & Guidelines (.md / .txt Upload) */}
-          <div className="form-group" style={{ background: 'rgba(99, 102, 241, 0.05)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px dashed rgba(99, 102, 241, 0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <label style={{ margin: 0, fontWeight: 600, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <FileText size={16} /> Guide Direction Artistique & DA (.md / .txt)
-              </label>
-              <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.3rem 0.65rem', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Upload size={12} /> Upload .md / .txt
-                <input type="file" accept=".md,.txt,.markdown" onChange={handleBrandDocUpload} style={{ display: 'none' }} />
-              </label>
-            </div>
-            <p style={{ fontSize: '0.76rem', color: 'var(--text-tertiary)', margin: '0 0 0.5rem 0' }}>
-              Importez ou collez la charte graphique de la marque (codes couleurs hex, ton de voix, règles visuelles, présentation entreprise).
-            </p>
-            <textarea 
-              name="brandDoc"
-              rows={4} 
-              value={formData.brandDoc || ''} 
-              onChange={handleChange} 
-              placeholder="# Charte Graphique & DA&#10;- Couleurs: #080A14, #6366F1, #EC4899&#10;- Style: Ambiance tech haut de gamme, visuels ultra nets, typographie épurée." 
-              style={{ fontFamily: 'monospace', fontSize: '0.82rem' }}
-            />
-          </div>
         </div>
+      </div>
+
+      {/* Brand Art Direction & Guidelines (.md / .txt Upload) - FULL WIDTH */}
+      <div className="form-group" style={{ marginTop: '1.5rem', background: 'rgba(99, 102, 241, 0.05)', padding: '1.25rem', borderRadius: 'var(--radius-sm)', border: '1px dashed rgba(99, 102, 241, 0.3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <label style={{ margin: 0, fontWeight: 600, color: 'var(--accent-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
+            <FileText size={18} /> Brand Art Direction & Guidelines (.md / .txt)
+          </label>
+          <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.4rem 0.85rem', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Upload size={14} /> Upload .md / .txt File
+            <input type="file" accept=".md,.txt,.markdown" onChange={handleBrandDocUpload} style={{ display: 'none' }} />
+          </label>
+        </div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-tertiary)', margin: '0 0 0.75rem 0' }}>
+          Upload or paste brand identity guidelines (Hex color codes, tone of voice, visual style rules, company overview). The AI will strictly tailor 100% of copywriting and visual generations to this document.
+        </p>
+        <textarea 
+          name="brandDoc"
+          rows={5} 
+          value={formData.brandDoc || ''} 
+          onChange={handleChange} 
+          placeholder="# Brand Guidelines & Art Direction&#10;- Color Palette: Dark Navy (#080A14), Electric Indigo (#6366F1), Neon Pink (#EC4899)&#10;- Visual Style: High-end crypto physical payment card, contactless payment motif, modern tech ambiance.&#10;- Copy Tone: Direct, confident, premium." 
+          style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%' }}
+        />
       </div>
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--border-light)', margin: '2rem 0' }} />

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AdInputForm } from './components/Form/AdInputForm';
 import { AdResultsView } from './components/Results/AdResultsView';
 import { useAdGeneration } from './hooks/useAdGeneration';
-import { Zap, Lock, History, X, Wrench, Users } from 'lucide-react';
+import { Zap, Lock, History, X, Users } from 'lucide-react';
 import DebugModal from './components/DebugModal';
 import { ClientManagementModal } from './components/Client/ClientManagementModal';
 import { ClientPortal } from './components/Client/ClientPortal';
@@ -170,14 +170,6 @@ function App() {
           >
             <Users size={16} color="var(--accent-primary)" />
             Onglet Clients
-          </button>
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => setIsDebugOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
-          >
-            <Wrench size={16} />
-            Debug KIE
           </button>
           <button 
             className="btn btn-secondary" 
