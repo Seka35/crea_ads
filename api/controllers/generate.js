@@ -1,43 +1,48 @@
 const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY;
 
-async function callMiniMax(promptContent) {
+async function callMiniMax(promptContent, retries = 1) {
   if (!MINIMAX_API_KEY) throw new Error("MINIMAX_API_KEY not configured");
 
-  const response = await fetch('https://api.minimax.io/anthropic/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${MINIMAX_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: 'MiniMax-M2.7',
-      messages: [{ role: 'user', content: promptContent }],
-      max_tokens: 4096,
-      temperature: 0.7
-    })
-  });
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const response = await fetch('https://api.minimax.io/anthropic/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MINIMAX_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'MiniMax-M2.7',
+          messages: [{ role: 'user', content: promptContent + "\n\nCRITICAL: You must output ONLY valid JSON. Escape all inner quotes using \\\"" }],
+          max_tokens: 4096,
+          temperature: 0.7
+        })
+      });
 
-  const data = await response.json();
-  
-  if (data.error) {
-    throw new Error(`MiniMax API Error: ${data.error.message || JSON.stringify(data.error)}`);
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(`MiniMax API Error: ${data.error.message || JSON.stringify(data.error)}`);
+      }
+
+      const textContent = data.content.find(c => c.type === 'text');
+      if (!textContent) {
+        throw new Error("No text content returned from MiniMax");
+      }
+
+      let rawText = textContent.text.trim();
+      if (rawText.includes("```json")) {
+        rawText = rawText.split("```json")[1].split("```")[0].trim();
+      } else if (rawText.includes("```")) {
+        rawText = rawText.split("```")[1].split("```")[0].trim();
+      }
+
+      return JSON.parse(rawText);
+    } catch (e) {
+      console.error(`MiniMax attempt ${i + 1} failed: ${e.message}`);
+      if (i === retries) throw e;
+    }
   }
-
-  // Anthropic API format returns content array
-  const textContent = data.content.find(c => c.type === 'text');
-  if (!textContent) {
-    throw new Error("No text content returned from MiniMax");
-  }
-
-  // Parse the JSON string out of the response (sometimes it includes markdown fences)
-  let rawText = textContent.text;
-  if (rawText.includes("```json")) {
-    rawText = rawText.split("```json")[1].split("```")[0].trim();
-  } else if (rawText.includes("```")) {
-    rawText = rawText.split("```")[1].split("```")[0].trim();
-  }
-
-  return JSON.parse(rawText);
 }
 
 async function generateSkeleton(formData) {
