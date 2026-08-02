@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Cpu } from 'lucide-react';
 import { AdDetailsModal } from '../Results/AdDetailsModal';
 import { AspectRatioSelector } from '../Form/AspectRatioSelector';
@@ -19,10 +19,12 @@ const LOADING_STEPS_EN = [
   "Final Quality Verification & Secure Render Deployment..."
 ];
 
+const STEP_PROGRESS_TARGETS = [14, 28, 42, 56, 70, 84, 96];
+
 export function ClientPortal({ client, onLogout }: ClientPortalProps) {
   const [promptInput, setPromptInput] = useState('');
   const [isPostMode, setIsPostMode] = useState(false);
-  const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [aspectRatio, setAspectRatio] = useState(client.defaultAspectRatio || '1:1');
   const [price, setPrice] = useState(client.price || '47');
   const [currency] = useState(client.currency || '$');
 
@@ -36,6 +38,10 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [clientHistory, setClientHistory] = useState<any[]>([]);
+
+  const pendingResultRef = useRef<any>(null);
+  const stepTimerRef = useRef<any>(null);
+  const isApiDoneRef = useRef<boolean>(false);
 
   const fetchHistory = async () => {
     if (!client.id) return;
@@ -56,49 +62,67 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
     fetchHistory();
   }, [client.id]);
 
-  // High-Tech Animated Loading Step Controller
-  useEffect(() => {
-    let stepTimer: any;
-    let progressTimer: any;
-
-    if (isGenerating) {
-      setCurrentStepIndex(0);
-      setProgressPercent(5);
-      setCompletedSteps([]);
-
-      progressTimer = setInterval(() => {
-        setProgressPercent(prev => (prev < 92 ? prev + Math.floor(Math.random() * 4) + 1 : prev));
-      }, 700);
-
-      stepTimer = setInterval(() => {
-        setCurrentStepIndex(prev => {
-          const next = prev + 1;
-          if (next < LOADING_STEPS_EN.length) {
-            setCompletedSteps(c => [...c, prev]);
-            return next;
-          }
-          return prev;
-        });
-      }, 3500);
-    } else {
-      setProgressPercent(100);
+  const advanceStep = (stepIdx: number) => {
+    setCurrentStepIndex(stepIdx);
+    setProgressPercent(STEP_PROGRESS_TARGETS[stepIdx] || 95);
+    
+    // Mark previous steps as completed
+    const completed = [];
+    for (let i = 0; i < stepIdx; i++) {
+      completed.push(i);
     }
+    setCompletedSteps(completed);
 
-    return () => {
-      clearInterval(stepTimer);
-      clearInterval(progressTimer);
-    };
-  }, [isGenerating]);
+    // Calculate delay for next step
+    const isApiFinished = isApiDoneRef.current;
+    const isLastStep = stepIdx >= LOADING_STEPS_EN.length - 1;
+
+    if (isLastStep) {
+      if (isApiFinished) {
+        // All steps & API complete!
+        finishGeneration();
+      } else {
+        // Waiting for API to finish on last step
+        stepTimerRef.current = setTimeout(() => {
+          if (isApiDoneRef.current) {
+            finishGeneration();
+          }
+        }, 1500);
+      }
+    } else {
+      // Move to next step (fast-forward if API finished, otherwise normal 5.5s pace)
+      const nextDelay = isApiFinished ? 1200 : 5500;
+      stepTimerRef.current = setTimeout(() => {
+        advanceStep(stepIdx + 1);
+      }, nextDelay);
+    }
+  };
+
+  const finishGeneration = () => {
+    setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
+    setProgressPercent(100);
+    setTimeout(() => {
+      setIsGenerating(false);
+      if (pendingResultRef.current) {
+        setResultCreative(pendingResultRef.current);
+      }
+      fetchHistory();
+    }, 600);
+  };
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!promptInput.trim()) {
-      alert('Please enter a description or idea for your creative asset.');
-      return;
-    }
 
     setIsGenerating(true);
     setResultCreative(null);
+    pendingResultRef.current = null;
+    isApiDoneRef.current = false;
+    setCurrentStepIndex(0);
+    setProgressPercent(8);
+    setCompletedSteps([]);
+
+    // Start realistic step timer chain
+    advanceStep(0);
 
     try {
       const res = await fetch('/api/client-generate', {
@@ -123,17 +147,12 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
       }
 
       const data = await res.json();
-      setProgressPercent(100);
-      setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
-      
-      setTimeout(() => {
-        setIsGenerating(false);
-        setResultCreative(data.item);
-        fetchHistory();
-      }, 600);
+      pendingResultRef.current = data.item;
+      isApiDoneRef.current = true;
 
     } catch (e: any) {
       console.error(e);
+      clearTimeout(stepTimerRef.current);
       alert('Error: ' + (e.message || 'Generation failed'));
       setIsGenerating(false);
     }
@@ -203,7 +222,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               Generate Your Creative Asset ✨
             </h2>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem' }}>
-              Enter your campaign topic, promotion, or post idea. Our neural engine handles the design.
+              Select your format and option details. Leave prompt empty to use your default brand strategy.
             </p>
           </div>
 
@@ -240,7 +259,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
             {/* Aspect Ratio Selector with Proportional Box Preview Icons */}
             <div className="form-group">
               <label style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
-                Image Aspect Ratio / Format *
+                Image Aspect Ratio / Format
               </label>
               <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
             </div>
@@ -260,17 +279,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               </div>
             )}
 
-            {/* Prompt Input Textarea */}
+            {/* Prompt Input Textarea - OPTIONAL */}
             <div className="form-group">
               <label style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-                Describe your idea or promotion *
+                Describe your specific idea or offer (Optional)
               </label>
               <textarea 
                 rows={4}
-                required
                 value={promptInput}
                 onChange={e => setPromptInput(e.target.value)}
-                placeholder="E.g. Enjoy 30% off our brand new winter collection this weekend! Free worldwide shipping over $50."
+                placeholder="Optional - Enter a specific campaign idea, promo code, or seasonal topic (leave blank to let our AI use your brand strategy)."
                 style={{ fontSize: '1rem', padding: '1rem', lineHeight: '1.5' }}
               />
             </div>
@@ -388,7 +406,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               <div style={{
                 height: '100%', width: `${progressPercent}%`, borderRadius: '100px',
                 background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
-                transition: 'width 0.4s ease-out', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
+                transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
               }} />
             </div>
 
