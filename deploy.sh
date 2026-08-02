@@ -16,6 +16,10 @@ echo "🎨 Build du Frontend (Vite)..."
 cd app
 npm install
 npm run build
+# Copier le build dans /var/www pour éviter les erreurs de permission Nginx 500
+echo "📂 Copie des fichiers statiques vers /var/www/crea_ads_frontend..."
+mkdir -p /var/www/crea_ads_frontend
+cp -R dist/* /var/www/crea_ads_frontend/
 cd ..
 
 # 3. Relancer PM2
