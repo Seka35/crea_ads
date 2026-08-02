@@ -89,7 +89,7 @@ Return EXACTLY this JSON structure:
   "angle": "${category}",
   "static_ads": [
     {
-      "id": "ad_1",
+      "id": "${category}_ad_1",
       "angle": "${category}",
       "format": "Static",
       "visual_style": "...",

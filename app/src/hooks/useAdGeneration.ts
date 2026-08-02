@@ -18,7 +18,7 @@ export function useAdGeneration() {
   const [adImages, setAdImages] = useState<Record<string, AdImageState>>({});
   
   // Ref to hold the queue and concurrency state without triggering re-renders unnecessarily
-  const queueRef = useRef<{ adId: string, prompt: string }[]>([]);
+  const queueRef = useRef<{ adId: string, prompt: string, text_overlay?: string }[]>([]);
   const activeCountRef = useRef(0);
   const uploadedUrlsRef = useRef<string[]>([]);
 
@@ -38,13 +38,17 @@ export function useAdGeneration() {
     }));
 
     try {
+      const fullPrompt = item.text_overlay 
+        ? `${item.prompt} IMPORTANT: You must write this exact text typography prominently in the image: "${item.text_overlay}"`
+        : item.prompt;
+
       const res = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': localStorage.getItem('app_password') || ''
         },
-        body: JSON.stringify({ prompt: item.prompt, input_urls: uploadedUrlsRef.current })
+        body: JSON.stringify({ prompt: fullPrompt, input_urls: uploadedUrlsRef.current })
       });
 
       if (!res.ok) {
@@ -75,7 +79,7 @@ export function useAdGeneration() {
   };
 
   const queueImageGeneration = (ads: StaticAd[]) => {
-    const newItems = ads.map(ad => ({ adId: ad.id, prompt: ad.prompt }));
+    const newItems = ads.map(ad => ({ adId: ad.id, prompt: ad.prompt, text_overlay: ad.text_overlay }));
     queueRef.current.push(...newItems);
     // Kick off up to 15 parallel workers if not already running
     for (let i = activeCountRef.current; i < 15; i++) {
@@ -83,8 +87,8 @@ export function useAdGeneration() {
     }
   };
 
-  const retryImage = (adId: string, prompt: string) => {
-    queueRef.current.push({ adId, prompt });
+  const retryImage = (adId: string, prompt: string, text_overlay?: string) => {
+    queueRef.current.push({ adId, prompt, text_overlay });
     processQueue();
   };
 
@@ -163,6 +167,11 @@ export function useAdGeneration() {
 
         if (bucketRes.ok) {
           const bucket = await bucketRes.json();
+          if (bucket.static_ads) {
+            bucket.static_ads.forEach((ad: any, index: number) => {
+              ad.id = `${category}_ad_${index + 1}_${Date.now()}`;
+            });
+          }
           setBuckets(prev => [...prev, bucket]);
           
           // Queue the newly generated ads for image generation
