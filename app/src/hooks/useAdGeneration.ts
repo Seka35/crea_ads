@@ -18,11 +18,11 @@ export function useAdGeneration() {
   const [adImages, setAdImages] = useState<Record<string, AdImageState>>({});
   
   // Ref to hold the queue and concurrency state without triggering re-renders unnecessarily
-  const queueRef = useRef<{ adId: string, prompt: string, text_overlay?: string }[]>([]);
+  const queueRef = useRef<{ adId: string, prompt: string, text_overlay?: string, aspectRatio?: string }[]>([]);
   const activeCountRef = useRef(0);
   const uploadedUrlsRef = useRef<string[]>([]);
 
-  const processQueue = async () => {
+  const processQueue = async (aspectRatio?: string) => {
     if (queueRef.current.length === 0 || activeCountRef.current >= 15) {
       return; // Queue is empty or max concurrency (15) reached
     }
@@ -48,7 +48,11 @@ export function useAdGeneration() {
           'Content-Type': 'application/json',
           'Authorization': localStorage.getItem('app_password') || ''
         },
-        body: JSON.stringify({ prompt: fullPrompt, input_urls: uploadedUrlsRef.current })
+        body: JSON.stringify({ 
+          prompt: fullPrompt, 
+          input_urls: uploadedUrlsRef.current,
+          aspect_ratio: item.aspectRatio || aspectRatio || "1:1" 
+        })
       });
 
       if (!res.ok) {
@@ -90,7 +94,8 @@ export function useAdGeneration() {
       return {
         adId: ad.id, 
         prompt: ad.prompt, 
-        text_overlay: overlay 
+        text_overlay: overlay,
+        aspectRatio: data?.aspectRatio || '1:1'
       };
     });
     queueRef.current.push(...newItems);

@@ -3,7 +3,7 @@ const KIE_API_KEY = process.env.KIE_API_KEY;
 // Delay helper
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function generateImage(prompt, input_urls) {
+async function generateImage(prompt, input_urls, aspect_ratio = "1:1") {
   if (!KIE_API_KEY) throw new Error("KIE_API_KEY not configured");
 
   // Step 1: Submit the job
@@ -18,7 +18,7 @@ async function generateImage(prompt, input_urls) {
       input: {
         prompt: prompt,
         input_urls: input_urls || [],
-        aspect_ratio: "1:1",
+        aspect_ratio: aspect_ratio || "1:1",
         resolution: "2K"
       }
     })

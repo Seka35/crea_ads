@@ -1,0 +1,513 @@
+import React, { useState, useEffect } from 'react';
+import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Cpu } from 'lucide-react';
+import { AdDetailsModal } from '../Results/AdDetailsModal';
+import { AspectRatioSelector } from '../Form/AspectRatioSelector';
+import type { ClientProfile } from './ClientManagementModal';
+
+interface ClientPortalProps {
+  client: ClientProfile;
+  onLogout: () => void;
+}
+
+const LOADING_STEPS_EN = [
+  "Initializing Neural Creative Engine & Establishing Core Gateway...",
+  "Analyzing Brand Guidelines, Tone & Visual Identity...",
+  "Mining High-Converting Hook Structures & Angle Frameworks...",
+  "Composing Persuasive Copywriting (Headline & Primary Text)...",
+  "Rendering High-Definition Visual Assets & Lighting Pass...",
+  "Optimizing Typographic Overlays & Social Ratio Formats...",
+  "Final Quality Verification & Secure Render Deployment..."
+];
+
+export function ClientPortal({ client, onLogout }: ClientPortalProps) {
+  const [promptInput, setPromptInput] = useState('');
+  const [isPostMode, setIsPostMode] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState('1:1');
+  const [price, setPrice] = useState(client.price || '47');
+  const [currency] = useState(client.currency || '$');
+
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  const [resultCreative, setResultCreative] = useState<any>(null);
+  const [selectedMockupCreative, setSelectedMockupCreative] = useState<any>(null);
+
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [clientHistory, setClientHistory] = useState<any[]>([]);
+
+  const fetchHistory = async () => {
+    if (!client.id) return;
+    try {
+      const res = await fetch(`/api/client-history/${client.id}`, {
+        headers: { 'Authorization': localStorage.getItem('app_password') || '' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setClientHistory(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [client.id]);
+
+  // High-Tech Animated Loading Step Controller
+  useEffect(() => {
+    let stepTimer: any;
+    let progressTimer: any;
+
+    if (isGenerating) {
+      setCurrentStepIndex(0);
+      setProgressPercent(5);
+      setCompletedSteps([]);
+
+      progressTimer = setInterval(() => {
+        setProgressPercent(prev => (prev < 92 ? prev + Math.floor(Math.random() * 4) + 1 : prev));
+      }, 700);
+
+      stepTimer = setInterval(() => {
+        setCurrentStepIndex(prev => {
+          const next = prev + 1;
+          if (next < LOADING_STEPS_EN.length) {
+            setCompletedSteps(c => [...c, prev]);
+            return next;
+          }
+          return prev;
+        });
+      }, 3500);
+    } else {
+      setProgressPercent(100);
+    }
+
+    return () => {
+      clearInterval(stepTimer);
+      clearInterval(progressTimer);
+    };
+  }, [isGenerating]);
+
+  const handleGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promptInput.trim()) {
+      alert('Please enter a description or idea for your creative asset.');
+      return;
+    }
+
+    setIsGenerating(true);
+    setResultCreative(null);
+
+    try {
+      const res = await fetch('/api/client-generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('app_password') || ''
+        },
+        body: JSON.stringify({
+          clientId: client.id,
+          promptInput,
+          isPostMode,
+          price: isPostMode ? undefined : price,
+          currency,
+          aspectRatio
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Generation failed');
+      }
+
+      const data = await res.json();
+      setProgressPercent(100);
+      setCompletedSteps(LOADING_STEPS_EN.map((_, i) => i));
+      
+      setTimeout(() => {
+        setIsGenerating(false);
+        setResultCreative(data.item);
+        fetchHistory();
+      }, 600);
+
+    } catch (e: any) {
+      console.error(e);
+      alert('Error: ' + (e.message || 'Generation failed'));
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = (imageUrl: string, title?: string) => {
+    if (!imageUrl) return;
+    const a = document.createElement('a');
+    a.href = imageUrl;
+    a.download = `${title || 'creative-asset'}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const displayHandle = client.instaHandle ? client.instaHandle.replace(/^@/, '') : client.username;
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-primary)' }}>
+      
+      {/* Header */}
+      <header className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 2rem', borderBottom: '1px solid var(--border-light)', background: 'var(--bg-secondary)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {client.logoUrl ? (
+            <img src={client.logoUrl} alt={client.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-primary)' }} />
+          ) : (
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: '1.3rem' }}>
+              {client.name.substring(0, 1).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{client.name}</h1>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>@{displayHandle} • Creative Portal</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => {
+              fetchHistory();
+              setIsHistoryOpen(true);
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem' }}
+          >
+            <History size={18} />
+            My History ({clientHistory.length})
+          </button>
+          <button 
+            onClick={onLogout} 
+            className="btn btn-secondary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem' }}
+          >
+            <LogOut size={18} />
+            Log Out
+          </button>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="container" style={{ flex: 1, padding: '3rem 1.5rem', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+        
+        {/* Form Card */}
+        <div className="glass-card" style={{ padding: '2.5rem', marginBottom: '3rem' }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ fontSize: '1.8rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+              Generate Your Creative Asset ✨
+            </h2>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.95rem' }}>
+              Enter your campaign topic, promotion, or post idea. Our neural engine handles the design.
+            </p>
+          </div>
+
+          <form onSubmit={handleGenerate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            
+            {/* Format Toggle (Ads vs Post) */}
+            <div style={{ display: 'flex', gap: '1rem', background: 'rgba(255,255,255,0.03)', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-light)' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsPostMode(false)}
+                style={{
+                  flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: 'none',
+                  background: !isPostMode ? 'var(--accent-primary)' : 'transparent',
+                  color: !isPostMode ? '#fff' : 'var(--text-tertiary)',
+                  fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                }}
+              >
+                📢 Sponsored Ad
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setIsPostMode(true)}
+                style={{
+                  flex: 1, padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: 'none',
+                  background: isPostMode ? 'var(--accent-primary)' : 'transparent',
+                  color: isPostMode ? '#fff' : 'var(--text-tertiary)',
+                  fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+                }}
+              >
+                📸 Organic Post
+              </button>
+            </div>
+
+            {/* Aspect Ratio Selector with Proportional Box Preview Icons */}
+            <div className="form-group">
+              <label style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem', display: 'block' }}>
+                Image Aspect Ratio / Format *
+              </label>
+              <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
+            </div>
+
+            {!isPostMode && (
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(99, 102, 241, 0.05)', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Displayed Offer Price:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span style={{ fontWeight: 'bold' }}>{currency}</span>
+                  <input 
+                    type="number" 
+                    value={price} 
+                    onChange={e => setPrice(e.target.value)} 
+                    style={{ width: '100px', padding: '0.4rem 0.8rem' }} 
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Prompt Input Textarea */}
+            <div className="form-group">
+              <label style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                Describe your idea or promotion *
+              </label>
+              <textarea 
+                rows={4}
+                required
+                value={promptInput}
+                onChange={e => setPromptInput(e.target.value)}
+                placeholder="E.g. Enjoy 30% off our brand new winter collection this weekend! Free worldwide shipping over $50."
+                style={{ fontSize: '1rem', padding: '1rem', lineHeight: '1.5' }}
+              />
+            </div>
+
+            {/* Big Action Button */}
+            <button 
+              type="submit" 
+              className="btn btn-primary" 
+              disabled={isGenerating}
+              style={{
+                padding: '1.25rem', fontSize: '1.15rem', fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+                borderRadius: 'var(--radius-md)', boxShadow: '0 8px 25px rgba(99, 102, 241, 0.4)'
+              }}
+            >
+              <Sparkles size={22} />
+              Generate My Creative
+            </button>
+          </form>
+        </div>
+
+        {/* Latest Result Card */}
+        {resultCreative && (
+          <div className="glass-card" style={{ padding: '2rem', borderRadius: 'var(--radius-lg)' }}>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--accent-primary)', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle2 color="var(--success)" /> Your Creative is Ready!
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', alignItems: 'start' }}>
+              
+              {/* Image Preview Container */}
+              <div style={{ width: '100%', aspectRatio: '1/1', background: '#000', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src={resultCreative.imageUrl} alt="Result" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+
+              {/* Details & Actions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    {resultCreative.isPostMode ? 'Organic Post' : `Sponsored Ad (${resultCreative.currency}${resultCreative.price})`} • Format {resultCreative.aspectRatio || '1:1'}
+                  </span>
+                  <h4 style={{ fontSize: '1.25rem', margin: '0.25rem 0 0.5rem 0' }}>
+                    {resultCreative.creative?.headline || 'Visual Asset'}
+                  </h4>
+                  <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                    {resultCreative.creative?.primary_text}
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button 
+                    onClick={() => setSelectedMockupCreative(resultCreative)}
+                    className="btn btn-secondary"
+                    style={{ flex: 1, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}
+                  >
+                    <Eye size={18} /> View in Instagram Mockup
+                  </button>
+
+                  <button 
+                    onClick={() => handleDownload(resultCreative.imageUrl, resultCreative.creative?.headline)}
+                    className="btn btn-primary"
+                    style={{ flex: 1, padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 600 }}
+                  >
+                    <Download size={18} /> Download Image
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      {/* HIGH-TECH FUTURISTIC LOADING OVERLAY */}
+      {isGenerating && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(8, 10, 20, 0.94)', backdropFilter: 'blur(16px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000,
+          padding: '1.5rem'
+        }}>
+          <div className="glass-card" style={{
+            width: '100%', maxWidth: '640px', padding: '3rem 2.5rem',
+            textAlign: 'center', borderRadius: '24px', border: '1px solid rgba(99, 102, 241, 0.3)',
+            boxShadow: '0 0 80px rgba(99, 102, 241, 0.25)', position: 'relative', overflow: 'hidden'
+          }}>
+            {/* Glowing top line */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)' }} />
+
+            {/* Central Icon Spinner */}
+            <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 2rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{
+                position: 'absolute', width: '100%', height: '100%', borderRadius: '50%',
+                border: '3px solid transparent', borderTopColor: 'var(--accent-primary)', borderRightColor: '#a855f7',
+                animation: 'spin 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite'
+              }} />
+              <div style={{
+                position: 'absolute', width: '70%', height: '70%', borderRadius: '50%',
+                border: '2px solid transparent', borderBottomColor: '#ec4899',
+                animation: 'spin 2s linear infinite reverse'
+              }} />
+              <Cpu size={36} color="var(--accent-primary)" />
+            </div>
+
+            <h3 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              High-Performance Processing...
+            </h3>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '2rem' }}>
+              Optimizing your creative visual asset
+            </p>
+
+            {/* Progress Bar Container */}
+            <div style={{ background: 'rgba(255, 255, 255, 0.06)', borderRadius: '100px', height: '12px', overflow: 'hidden', marginBottom: '2rem', padding: '2px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{
+                height: '100%', width: `${progressPercent}%`, borderRadius: '100px',
+                background: 'linear-gradient(90deg, #6366f1 0%, #a855f7 50%, #ec4899 100%)',
+                transition: 'width 0.4s ease-out', boxShadow: '0 0 15px rgba(168, 85, 247, 0.6)'
+              }} />
+            </div>
+
+            {/* Multi-step Status Logs */}
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.4)', borderRadius: 'var(--radius-md)', padding: '1.25rem',
+              textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '180px', overflowY: 'auto',
+              border: '1px solid rgba(255,255,255,0.05)'
+            }}>
+              {LOADING_STEPS_EN.map((step, idx) => {
+                const isDone = completedSteps.includes(idx);
+                const isCurrent = currentStepIndex === idx;
+                if (idx > currentStepIndex) return null;
+
+                return (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem',
+                    color: isCurrent ? '#ffffff' : isDone ? '#4ade80' : 'var(--text-tertiary)',
+                    opacity: isCurrent ? 1 : 0.85, transition: 'all 0.3s'
+                  }}>
+                    {isDone ? (
+                      <CheckCircle2 size={16} color="#4ade80" />
+                    ) : (
+                      <div className="spinner" style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,0.2)', borderTop: '2px solid var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    )}
+                    <span style={{ fontWeight: isCurrent ? 600 : 400 }}>{step}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Instagram Mockup Modal for Client */}
+      {selectedMockupCreative && (
+        <AdDetailsModal 
+          ad={selectedMockupCreative.creative}
+          imageState={{ url: selectedMockupCreative.imageUrl, loading: false }}
+          clientLogoUrl={client.logoUrl}
+          clientInstaHandle={client.instaHandle || client.username}
+          onClose={() => setSelectedMockupCreative(null)}
+        />
+      )}
+
+      {/* Client History Modal */}
+      {isHistoryOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1200,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)', width: '90%', maxWidth: '700px',
+            maxHeight: '85vh', borderRadius: 'var(--radius-lg)', padding: '2rem',
+            overflowY: 'auto', border: '1px solid var(--border-light)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                <History /> Past Creative History
+              </h2>
+              <button onClick={() => setIsHistoryOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}>
+                ✕
+              </button>
+            </div>
+
+            {clientHistory.length === 0 ? (
+              <p style={{ color: 'var(--text-tertiary)', textAlign: 'center', padding: '3rem 0' }}>
+                No past creatives found in your history.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {clientHistory.map(item => (
+                  <div key={item.id} className="glass" style={{ padding: '1rem', borderRadius: 'var(--radius-md)', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                    <div style={{ width: '70px', height: '70px', background: '#000', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                      <img src={item.imageUrl} alt="Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </div>
+
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                        {item.isPostMode ? 'Organic Post' : `Ad (${item.currency}${item.price})`} • Format {item.aspectRatio || '1:1'}
+                      </span>
+                      <h4 style={{ margin: '0.2rem 0', fontSize: '1rem', color: 'var(--text-primary)' }}>
+                        {item.creative?.headline || item.promptInput || 'Creative Asset'}
+                      </h4>
+                      <p style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', margin: 0 }}>
+                        {new Date(item.date).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button 
+                        className="btn btn-secondary"
+                        onClick={() => {
+                          setSelectedMockupCreative(item);
+                          setIsHistoryOpen(false);
+                        }}
+                        style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                      >
+                        <Eye size={16} />
+                      </button>
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => handleDownload(item.imageUrl, item.creative?.headline)}
+                        style={{ padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
+                      >
+                        <Download size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

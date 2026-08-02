@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ImageUploader } from './ImageUploader';
+import { AspectRatioSelector } from './AspectRatioSelector';
 
 export interface AdGenerationData {
   productName: string;
@@ -14,6 +15,7 @@ export interface AdGenerationData {
   adsPerCategory: number;
   categorySelection: string;
   isPostMode: boolean;
+  aspectRatio: string;
 }
 
 interface AdInputFormProps {
@@ -35,7 +37,8 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
     bigIdea: '',
     adsPerCategory: 5,
     categorySelection: 'all',
-    isPostMode: false
+    isPostMode: false,
+    aspectRatio: '1:1'
   });
   
   const [images, setImages] = useState<File[]>([]);
@@ -158,6 +161,14 @@ export function AdInputForm({ onGenerate, isGenerating, progressText }: AdInputF
         <ImageUploader onImagesChange={(newImages) => setImages(newImages)} />
         
         <div>
+          <div className="form-group">
+            <label>Image Aspect Ratio / Format</label>
+            <AspectRatioSelector 
+              value={formData.aspectRatio} 
+              onChange={(val) => setFormData(prev => ({ ...prev, aspectRatio: val }))} 
+            />
+          </div>
+
           <div className="form-group">
             <label>Catégorie (Angle/Style) à générer</label>
             <select name="categorySelection" value={formData.categorySelection} onChange={handleChange}>
