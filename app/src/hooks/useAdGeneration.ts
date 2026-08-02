@@ -1,5 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { AdGenerationData } from '../components/Form/AdInputForm';
+import type { StaticAd } from '../components/Results/AdCard';
+
+export interface AdImageState {
+  url?: string;
+  loading: boolean;
+  error?: string;
+}
 
 export function useAdGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -7,12 +14,81 @@ export function useAdGeneration() {
   const [skeleton, setSkeleton] = useState<any>(null);
   const [buckets, setBuckets] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
+  
+  const [adImages, setAdImages] = useState<Record<string, AdImageState>>({});
+  
+  // Ref to hold the queue and concurrency state without triggering re-renders unnecessarily
+  const queueRef = useRef<{ adId: string, prompt: string }[]>([]);
+  const activeCountRef = useRef(0);
+  const uploadedUrlsRef = useRef<string[]>([]);
+
+  const processQueue = async () => {
+    if (queueRef.current.length === 0 || activeCountRef.current >= 5) {
+      return; // Queue is empty or max concurrency (5) reached
+    }
+
+    const item = queueRef.current.shift();
+    if (!item) return;
+
+    activeCountRef.current++;
+    
+    setAdImages(prev => ({
+      ...prev,
+      [item.adId]: { loading: true }
+    }));
+
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('app_password') || ''
+        },
+        body: JSON.stringify({ prompt: item.prompt, input_urls: uploadedUrlsRef.current })
+      });
+
+      if (!res.ok) throw new Error("Image generation failed");
+      const data = await res.json();
+
+      setAdImages(prev => ({
+        ...prev,
+        [item.adId]: { loading: false, url: data.url }
+      }));
+    } catch (err: any) {
+      console.error(err);
+      setAdImages(prev => ({
+        ...prev,
+        [item.adId]: { loading: false, error: err.message }
+      }));
+    } finally {
+      activeCountRef.current--;
+      // Recursively process the next item
+      processQueue();
+    }
+  };
+
+  const queueImageGeneration = (ads: StaticAd[]) => {
+    const newItems = ads.map(ad => ({ adId: ad.id, prompt: ad.prompt }));
+    queueRef.current.push(...newItems);
+    // Kick off up to 5 parallel workers if not already running
+    for (let i = activeCountRef.current; i < 5; i++) {
+      processQueue();
+    }
+  };
+
+  const retryImage = (adId: string, prompt: string) => {
+    queueRef.current.push({ adId, prompt });
+    processQueue();
+  };
 
   const generatePipeline = async (data: AdGenerationData, files?: File[]) => {
     setIsGenerating(true);
     setError(null);
     setSkeleton(null);
     setBuckets([]);
+    setAdImages({});
+    queueRef.current = [];
+    activeCountRef.current = 0;
     setProgressText('Initialisation...');
     
     try {
@@ -36,6 +112,7 @@ export function useAdGeneration() {
         const uploadData = await uploadRes.json();
         uploadedUrls = uploadData.urls;
       }
+      uploadedUrlsRef.current = uploadedUrls;
 
       // 2. Generate Skeleton
       setProgressText('Génération de la stratégie (Skeleton)...');
@@ -80,6 +157,11 @@ export function useAdGeneration() {
         if (bucketRes.ok) {
           const bucket = await bucketRes.json();
           setBuckets(prev => [...prev, bucket]);
+          
+          // Queue the newly generated ads for image generation
+          if (bucket.static_ads) {
+            queueImageGeneration(bucket.static_ads);
+          }
         } else {
           console.error(`Failed to generate bucket ${category}`);
         }
@@ -106,5 +188,5 @@ export function useAdGeneration() {
     URL.revokeObjectURL(url);
   };
 
-  return { isGenerating, progressText, skeleton, buckets, error, generatePipeline, exportData };
+  return { isGenerating, progressText, skeleton, buckets, adImages, error, generatePipeline, exportData, retryImage };
 }

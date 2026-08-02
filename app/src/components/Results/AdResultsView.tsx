@@ -21,13 +21,17 @@ interface Skeleton {
   };
 }
 
+import type { AdImageState } from '../../hooks/useAdGeneration';
+
 interface AdResultsViewProps {
   skeleton: Skeleton | null;
   buckets: Bucket[];
+  adImages?: Record<string, AdImageState>;
+  onRetryImage?: (adId: string, prompt: string) => void;
   onExport?: () => void;
 }
 
-export function AdResultsView({ skeleton, buckets, onExport }: AdResultsViewProps) {
+export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, onExport }: AdResultsViewProps) {
   if (!skeleton && buckets.length === 0) {
     return null;
   }
@@ -93,7 +97,12 @@ export function AdResultsView({ skeleton, buckets, onExport }: AdResultsViewProp
             alignItems: 'stretch'
           }}>
             {bucket.static_ads.map((ad) => (
-              <AdCard key={ad.id} ad={ad} />
+              <AdCard 
+                key={ad.id} 
+                ad={ad} 
+                imageState={adImages[ad.id]}
+                onRetryImage={() => onRetryImage?.(ad.id, ad.prompt)}
+              />
             ))}
           </div>
         </div>

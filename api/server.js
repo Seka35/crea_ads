@@ -9,6 +9,17 @@ const { generateSkeleton, generateBucket } = require('./controllers/generate');
 const { generateImage } = require('./controllers/images');
 
 const app = express();
+app.post('/api/generate-image', async (req, res) => {
+  try {
+    const { prompt, input_urls } = req.body;
+    const imageUrl = await generateImage(prompt, input_urls);
+    res.json({ url: imageUrl });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Image generation failed', details: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 

@@ -1,5 +1,6 @@
 
-import { Copy, ImageIcon, Eye } from 'lucide-react';
+import { Copy, ImageIcon, Eye, RefreshCw } from 'lucide-react';
+import type { AdImageState } from '../../hooks/useAdGeneration';
 
 export interface StaticAd {
   id: string;
@@ -19,9 +20,11 @@ export interface StaticAd {
 
 interface AdCardProps {
   ad: StaticAd;
+  imageState?: AdImageState;
+  onRetryImage: () => void;
 }
 
-export function AdCard({ ad }: AdCardProps) {
+export function AdCard({ ad, imageState, onRetryImage }: AdCardProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -44,6 +47,41 @@ export function AdCard({ ad }: AdCardProps) {
       </div>
 
       <div style={{ flex: 1 }}>
+        {imageState?.url ? (
+          <div style={{ marginBottom: '1rem', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
+            <img src={imageState.url} alt="Generated Ad" style={{ width: '100%', height: 'auto', display: 'block' }} />
+          </div>
+        ) : (
+          <div style={{ 
+            height: '250px', 
+            background: 'rgba(0,0,0,0.2)', 
+            borderRadius: 'var(--radius-md)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: '1rem',
+            marginBottom: '1rem',
+            border: '1px dashed var(--border-light)'
+          }}>
+            {imageState?.loading ? (
+              <>
+                <div className="spinner" style={{ width: '24px', height: '24px', border: '3px solid rgba(255,255,255,0.1)', borderTop: '3px solid var(--accent-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Génération KIE en cours... (~60s)</span>
+              </>
+            ) : imageState?.error ? (
+              <>
+                <span style={{ color: 'var(--error)', fontSize: '0.85rem', textAlign: 'center', padding: '0 1rem' }}>Échec: {imageState.error}</span>
+                <button onClick={onRetryImage} className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <RefreshCw size={14} /> Réessayer
+                </button>
+              </>
+            ) : (
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>En attente de génération...</span>
+            )}
+          </div>
+        )}
+
         <h4 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <ImageIcon size={14} /> GPT Image Prompt
         </h4>
