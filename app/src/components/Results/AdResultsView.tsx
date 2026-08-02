@@ -1,6 +1,7 @@
 
 import { AdCard } from './AdCard';
 import { AdDetailsModal } from './AdDetailsModal';
+import { EditPromptModal } from './EditPromptModal';
 import { Layers, Download } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -35,6 +36,7 @@ interface AdResultsViewProps {
 
 export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, onSaveHistory, onExport }: AdResultsViewProps) {
   const [selectedAd, setSelectedAd] = useState<StaticAd | null>(null);
+  const [editPromptAd, setEditPromptAd] = useState<StaticAd | null>(null);
 
   if (!skeleton && buckets.length === 0) {
     return null;
@@ -116,6 +118,7 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
                 imageState={adImages[ad.id]} 
                 onRetryImage={() => onRetryImage?.(ad.id, ad.prompt)} 
                 onExpand={(clickedAd) => setSelectedAd(clickedAd)}
+                onRegenerate={(clickedAd) => setEditPromptAd(clickedAd)}
               />
             ))}
           </div>
@@ -127,6 +130,17 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
           ad={selectedAd} 
           imageState={adImages[selectedAd.id]} 
           onClose={() => setSelectedAd(null)} 
+        />
+      )}
+      {/* Regenerate Ad Prompt Modal */}
+      {editPromptAd && (
+        <EditPromptModal
+          ad={editPromptAd}
+          onClose={() => setEditPromptAd(null)}
+          onSubmit={(newPrompt) => {
+            onRetryImage?.(editPromptAd.id, newPrompt);
+            setEditPromptAd(null);
+          }}
         />
       )}
     </div>

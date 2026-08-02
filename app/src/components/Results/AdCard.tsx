@@ -23,9 +23,10 @@ interface AdCardProps {
   imageState?: AdImageState;
   onRetryImage: () => void;
   onExpand?: (ad: StaticAd) => void;
+  onRegenerate?: (ad: StaticAd) => void;
 }
 
-export function AdCard({ ad, imageState, onRetryImage, onExpand }: AdCardProps) {
+export function AdCard({ ad, imageState, onRetryImage, onExpand, onRegenerate }: AdCardProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -47,13 +48,23 @@ export function AdCard({ ad, imageState, onRetryImage, onExpand }: AdCardProps) 
           </span>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>ID: {ad.id}</span>
         </div>
-        <button 
-          onClick={() => onExpand?.(ad)} 
-          className="btn btn-secondary" 
-          style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}
-        >
-          Agrandir / Mockup
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            onClick={() => onRegenerate?.(ad)} 
+            className="btn btn-secondary" 
+            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+            title="Modifier le prompt et régénérer"
+          >
+            <RefreshCw size={14} />
+          </button>
+          <button 
+            onClick={() => onExpand?.(ad)} 
+            className="btn btn-secondary" 
+            style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem' }}
+          >
+            Agrandir / Mockup
+          </button>
+        </div>
       </div>
 
       <div style={{ flex: 1 }}>
