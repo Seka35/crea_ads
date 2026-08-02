@@ -14,7 +14,7 @@ async function callLLM(promptContent, retries = 1) {
           'X-Title': 'Ad Creative Generator'
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3.5-sonnet',
+          model: 'anthropic/claude-sonnet-5',
           messages: [{ role: 'user', content: promptContent + "\n\nCRITICAL: You must output ONLY valid JSON. Escape all inner quotes using \\\"" }],
           response_format: { type: 'json_object' }
         })
