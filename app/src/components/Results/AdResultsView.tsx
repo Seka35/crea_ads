@@ -66,19 +66,19 @@ export function AdResultsView({ skeleton, buckets, adImages = {}, onRetryImage, 
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
               <h4 style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Dominant Color</h4>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: skeleton.campaign_dna.visual_signature.dominant_color }}></div>
-                <span>{skeleton.campaign_dna.visual_signature.dominant_color}</span>
+                <div style={{ width: '20px', height: '20px', borderRadius: '4px', background: skeleton.campaign_dna?.visual_signature?.dominant_color || 'transparent' }}></div>
+                <span>{skeleton.campaign_dna?.visual_signature?.dominant_color || 'N/A'}</span>
               </div>
             </div>
             
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
               <h4 style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Lighting Mood</h4>
-              <span>{skeleton.campaign_dna.visual_signature.lighting_mood}</span>
+              <span>{skeleton.campaign_dna?.visual_signature?.lighting_mood || 'N/A'}</span>
             </div>
             
             <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
               <h4 style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Texture Vibe</h4>
-              <span>{skeleton.campaign_dna.visual_signature.texture_vibe}</span>
+              <span>{skeleton.campaign_dna?.visual_signature?.texture_vibe || 'N/A'}</span>
             </div>
           </div>
         </div>
