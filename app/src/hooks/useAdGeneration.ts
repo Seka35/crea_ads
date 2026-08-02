@@ -79,11 +79,17 @@ export function useAdGeneration() {
   };
 
   const queueImageGeneration = (ads: StaticAd[]) => {
-    const newItems = ads.map(ad => ({ 
-      adId: ad.id, 
-      prompt: ad.prompt, 
-      text_overlay: ad.text_overlay?.hook_line || (typeof ad.text_overlay === 'string' ? ad.text_overlay : '') 
-    }));
+    const newItems = ads.map(ad => {
+      let overlay = typeof ad.text_overlay === 'string' ? ad.text_overlay : (ad.text_overlay?.hook_line || '');
+      if (typeof ad.text_overlay === 'object' && ad.text_overlay?.support_line && ad.text_overlay.support_line.toLowerCase() !== "none") {
+        overlay += ` - ${ad.text_overlay.support_line}`;
+      }
+      return {
+        adId: ad.id, 
+        prompt: ad.prompt, 
+        text_overlay: overlay 
+      };
+    });
     queueRef.current.push(...newItems);
     // Kick off up to 15 parallel workers if not already running
     for (let i = activeCountRef.current; i < 15; i++) {
