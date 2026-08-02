@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Trash2, Edit, Upload, UserCheck, Shield, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { AspectRatioSelector } from '../Form/AspectRatioSelector';
 
 export interface ClientProfile {
   id?: string;
@@ -13,6 +14,8 @@ export interface ClientProfile {
   category: string;
   aiStrategy: string;
   awarenessLevel: string;
+  categorySelection: string;
+  defaultAspectRatio: string;
   uniqueMechanism: string;
   bigIdea: string;
   referenceImages: string[];
@@ -42,6 +45,8 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
     category: '',
     aiStrategy: 'neutral',
     awarenessLevel: 'solution_aware',
+    categorySelection: 'all',
+    defaultAspectRatio: '1:1',
     uniqueMechanism: '',
     bigIdea: '',
     referenceImages: [],
@@ -177,8 +182,8 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
       padding: '1.5rem'
     }}>
       <div style={{
-        background: 'var(--bg-secondary)', width: '100%', maxWidth: '950px',
-        maxHeight: '90vh', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column',
+        background: 'var(--bg-secondary)', width: '100%', maxWidth: '1000px',
+        maxHeight: '92vh', borderRadius: 'var(--radius-lg)', display: 'flex', flexDirection: 'column',
         border: '1px solid var(--border-light)', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)'
       }}>
         {/* Header */}
@@ -186,7 +191,7 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <UserCheck size={24} color="var(--accent-primary)" />
             <h2 style={{ fontSize: '1.3rem', margin: 0, color: 'var(--text-primary)', fontWeight: 600 }}>
-              Client Accounts & Portal Management
+              Client Accounts & Precision Settings
             </h2>
           </div>
           <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer' }}>
@@ -209,11 +214,11 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                 </button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.1fr', gap: '1.5rem' }}>
                 
                 {/* Identity & Credentials */}
-                <div className="glass" style={{ padding: '1.25rem', borderRadius: 'var(--radius-sm)' }}>
-                  <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
+                <div className="glass" style={{ padding: '1.25rem', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h4 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
                     <Shield size={16} /> Identity & Access Credentials
                   </h4>
                   
@@ -238,48 +243,7 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                     </div>
                   </div>
 
-                  {/* Logo Upload */}
-                  <div className="form-group" style={{ marginTop: '0.5rem' }}>
-                    <label>Brand Logo</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      {editingClient.logoUrl ? (
-                        <img src={editingClient.logoUrl} alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-primary)' }} />
-                      ) : (
-                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <ImageIcon size={20} color="var(--text-tertiary)" />
-                        </div>
-                      )}
-                      <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <Upload size={14} />
-                        {isUploadingLogo ? 'Uploading...' : 'Upload Logo'}
-                        <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Admin Configurations & Prompts */}
-                <div className="glass" style={{ padding: '1.25rem', borderRadius: 'var(--radius-sm)' }}>
-                  <h4 style={{ margin: '0 0 1rem 0', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
-                    <Sparkles size={16} /> Admin Master Prompt & Positioning Settings
-                  </h4>
-
-                  <div className="form-group">
-                    <label>Admin Master Prompt Instructions for this Client</label>
-                    <textarea rows={3} value={editingClient.defaultPrompt} onChange={e => setEditingClient({ ...editingClient, defaultPrompt: e.target.value })} placeholder="Client specific guidelines (tone, forbidden words, mandatory branding rules...)" />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label>Niche / Audience</label>
-                      <input type="text" value={editingClient.niche} onChange={e => setEditingClient({ ...editingClient, niche: e.target.value })} placeholder="e.g. Crypto Traders" />
-                    </div>
-                    <div className="form-group">
-                      <label>Category</label>
-                      <input type="text" value={editingClient.category} onChange={e => setEditingClient({ ...editingClient, category: e.target.value })} placeholder="e.g. FinTech SaaS" />
-                    </div>
-                  </div>
-
+                  {/* Default Price & Currency */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="form-group">
                       <label>Default Price</label>
@@ -295,9 +259,28 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                     </div>
                   </div>
 
+                  {/* Logo Upload */}
+                  <div className="form-group">
+                    <label>Brand Logo Avatar</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                      {editingClient.logoUrl ? (
+                        <img src={editingClient.logoUrl} alt="Logo" style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--accent-primary)' }} />
+                      ) : (
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ImageIcon size={20} color="var(--text-tertiary)" />
+                        </div>
+                      )}
+                      <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Upload size={14} />
+                        {isUploadingLogo ? 'Uploading...' : 'Upload Logo'}
+                        <input type="file" accept="image/*" onChange={handleLogoUpload} style={{ display: 'none' }} />
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Reference Images Upload */}
-                  <div className="form-group" style={{ marginTop: '0.5rem' }}>
-                    <label>Reference Images (Brand assets / Product packshots)</label>
+                  <div className="form-group">
+                    <label>Brand Assets / Product Reference Images</label>
                     <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
                       {editingClient.referenceImages?.map((url, i) => (
                         <div key={i} style={{ position: 'relative' }}>
@@ -321,11 +304,93 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                   </div>
                 </div>
 
+                {/* Admin Configurations, Persuasion & Angles */}
+                <div className="glass" style={{ padding: '1.25rem', borderRadius: 'var(--radius-sm)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <h4 style={{ margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
+                    <Sparkles size={16} /> Precision Strategy & Angle Parameters
+                  </h4>
+
+                  <div className="form-group">
+                    <label>Master Prompt Instructions (Tone, Copywriting Rules)</label>
+                    <textarea rows={2} value={editingClient.defaultPrompt} onChange={e => setEditingClient({ ...editingClient, defaultPrompt: e.target.value })} placeholder="Client specific guidelines (tone, mandatory hashtags, forbidden claims...)" />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Niche / Target Audience</label>
+                      <input type="text" value={editingClient.niche} onChange={e => setEditingClient({ ...editingClient, niche: e.target.value })} placeholder="e.g. Crypto Traders" />
+                    </div>
+                    <div className="form-group">
+                      <label>Category</label>
+                      <input type="text" value={editingClient.category} onChange={e => setEditingClient({ ...editingClient, category: e.target.value })} placeholder="e.g. FinTech SaaS" />
+                    </div>
+                  </div>
+
+                  {/* AI Strategy & Awareness Level */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>AI Strategy</label>
+                      <select value={editingClient.aiStrategy || 'neutral'} onChange={e => setEditingClient({ ...editingClient, aiStrategy: e.target.value })}>
+                        <option value="assumed">Assumed (Futuristic/Data)</option>
+                        <option value="hidden">Hidden (Human textures/Warm)</option>
+                        <option value="neutral">Neutral (Free choice)</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Awareness Level</label>
+                      <select value={editingClient.awarenessLevel || 'solution_aware'} onChange={e => setEditingClient({ ...editingClient, awarenessLevel: e.target.value })}>
+                        <option value="unaware">Unaware (Storytelling/Identity)</option>
+                        <option value="problem_aware">Problem Aware (Pain-mirror)</option>
+                        <option value="solution_aware">Solution Aware (Mechanism reveal)</option>
+                        <option value="product_aware">Product Aware (Risk-reversal/Proof)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Target Angle / Category Selection & Default Format */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label>Angle / Style to Generate</label>
+                      <select value={editingClient.categorySelection || 'all'} onChange={e => setEditingClient({ ...editingClient, categorySelection: e.target.value })}>
+                        <option value="all">Auto Best-Fit Category</option>
+                        <option value="problem_aware">Problem Aware</option>
+                        <option value="solution_aware">Solution Aware</option>
+                        <option value="identity">Identity</option>
+                        <option value="social_proof">Social Proof</option>
+                        <option value="pattern_interrupt">Pattern Interrupt</option>
+                        <option value="pro_creative">Style: Pro Creative</option>
+                        <option value="organic_native">Style: Organic Native</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Default Format Aspect Ratio</label>
+                      <AspectRatioSelector 
+                        value={editingClient.defaultAspectRatio || '1:1'} 
+                        onChange={val => setEditingClient({ ...editingClient, defaultAspectRatio: val })} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Unique Mechanism & Big Idea */}
+                  <div className="form-group">
+                    <label>Unique Mechanism</label>
+                    <input type="text" value={editingClient.uniqueMechanism || ''} onChange={e => setEditingClient({ ...editingClient, uniqueMechanism: e.target.value })} placeholder="The unique feature that makes this brand different..." />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Big Idea (Default baseline topic)</label>
+                    <textarea rows={2} value={editingClient.bigIdea || ''} onChange={e => setEditingClient({ ...editingClient, bigIdea: e.target.value })} placeholder="Core campaign big idea..." />
+                  </div>
+
+                </div>
+
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1rem' }}>
                 <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem 2rem' }}>
-                  Save Client Profile
+                  Save Client Profile & Precision Settings
                 </button>
               </div>
             </form>
@@ -334,7 +399,7 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <p style={{ color: 'var(--text-tertiary)', margin: 0 }}>
-                  Manage client accounts, authentication credentials, and pre-configured AI master prompts.
+                  Manage client accounts, credentials, positioning parameters, angles, and master prompts.
                 </p>
                 <button 
                   onClick={() => setEditingClient(emptyClient)} 
@@ -380,7 +445,9 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem', background: 'rgba(255,255,255,0.03)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem' }}>
                           <div><strong>Username:</strong> {client.username}</div>
                           <div><strong>Password:</strong> {client.password}</div>
-                          <div><strong>Brand Visuelle Assets:</strong> {client.referenceImages?.length || 0} image(s)</div>
+                          <div><strong>Default Angle:</strong> {client.categorySelection || 'Auto Best-Fit'}</div>
+                          <div><strong>Default Format:</strong> {client.defaultAspectRatio || '1:1'}</div>
+                          <div><strong>Assets:</strong> {client.referenceImages?.length || 0} image(s)</div>
                         </div>
                       </div>
 
@@ -412,4 +479,3 @@ export function ClientManagementModal({ onClose }: ClientManagementModalProps) {
     </div>
   );
 }
-

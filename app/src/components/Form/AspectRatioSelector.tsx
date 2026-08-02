@@ -73,9 +73,9 @@ export function AspectRatioSelector({ value, onChange }: AspectRatioSelectorProp
       {isOpen && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '6px',
-          background: 'var(--bg-secondary)', border: '1px solid var(--border-light)',
-          borderRadius: 'var(--radius-md)', boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-          maxHeight: '260px', overflowY: 'auto', zIndex: 100, padding: '0.35rem'
+          background: '#141722', border: '1px solid var(--border-light)',
+          borderRadius: 'var(--radius-md)', boxShadow: '0 15px 40px rgba(0,0,0,0.9)',
+          maxHeight: '260px', overflowY: 'auto', zIndex: 9999, padding: '0.35rem'
         }}>
           {ASPECT_RATIOS.map(item => {
             const isSelected = item.value === value;

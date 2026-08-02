@@ -184,13 +184,15 @@ app.post('/api/client-generate', async (req, res) => {
       aiStrategy: client.aiStrategy || 'neutral',
       awarenessLevel: client.awarenessLevel || 'solution_aware',
       uniqueMechanism: client.uniqueMechanism || '',
-      bigIdea: promptInput || client.defaultPrompt || client.bigIdea || '',
+      bigIdea: promptInput ? `${client.defaultPrompt ? client.defaultPrompt + '\n' : ''}${promptInput}` : (client.bigIdea || client.defaultPrompt || ''),
       adsPerCategory: 1,
       isPostMode: !!isPostMode
     };
 
     // Generate Creative copy (Headline, Primary Text, Text Overlay) using LLM
-    const category = isPostMode ? 'organic_native' : 'solution_aware';
+    const category = client.categorySelection && client.categorySelection !== 'all' 
+      ? client.categorySelection 
+      : (isPostMode ? 'organic_native' : 'solution_aware');
     const bucket = await generateBucket(formData, category);
 
     const staticAd = (bucket.static_ads && bucket.static_ads.length > 0) ? bucket.static_ads[0] : {
