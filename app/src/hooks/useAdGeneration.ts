@@ -23,8 +23,8 @@ export function useAdGeneration() {
   const uploadedUrlsRef = useRef<string[]>([]);
 
   const processQueue = async () => {
-    if (queueRef.current.length === 0 || activeCountRef.current >= 5) {
-      return; // Queue is empty or max concurrency (5) reached
+    if (queueRef.current.length === 0 || activeCountRef.current >= 15) {
+      return; // Queue is empty or max concurrency (15) reached
     }
 
     const item = queueRef.current.shift();
@@ -70,8 +70,8 @@ export function useAdGeneration() {
   const queueImageGeneration = (ads: StaticAd[]) => {
     const newItems = ads.map(ad => ({ adId: ad.id, prompt: ad.prompt }));
     queueRef.current.push(...newItems);
-    // Kick off up to 5 parallel workers if not already running
-    for (let i = activeCountRef.current; i < 5; i++) {
+    // Kick off up to 15 parallel workers if not already running
+    for (let i = activeCountRef.current; i < 15; i++) {
       processQueue();
     }
   };
