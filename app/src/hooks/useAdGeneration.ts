@@ -39,7 +39,7 @@ export function useAdGeneration() {
 
     try {
       const fullPrompt = item.text_overlay 
-        ? `${item.prompt} IMPORTANT: You must write this exact text typography prominently in the image: "${item.text_overlay}"`
+        ? `${item.prompt} IMPORTANT: You must write this exact text typography prominently in the image: "${item.text_overlay}". Place the text in the upper or center area of the image ONLY — never in the bottom third, as that area will be covered by a Meta Ads overlay.`
         : item.prompt;
 
       const res = await fetch('/api/generate-image', {
