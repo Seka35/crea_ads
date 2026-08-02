@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Image as ImageIcon, X } from 'lucide-react';
+import { UploadCloud, X } from 'lucide-react';
 
 interface ImageUploaderProps {
   onImagesChange: (images: File[]) => void;

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Copy, ImageIcon, Eye } from 'lucide-react';
 
 export interface StaticAd {

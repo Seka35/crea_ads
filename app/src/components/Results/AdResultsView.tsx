@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { StaticAd } from './AdCard';
 import { AdCard } from './AdCard';
 import { Layers, Download } from 'lucide-react';
