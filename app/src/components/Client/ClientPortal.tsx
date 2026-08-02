@@ -10,13 +10,13 @@ interface ClientPortalProps {
 }
 
 const LOADING_STEPS_EN = [
-  "Initializing Neural Creative Engine & Establishing Core Gateway...",
-  "Analyzing Brand Guidelines, Tone & Visual Identity...",
-  "Mining High-Converting Hook Structures & Angle Frameworks...",
-  "Composing Persuasive Copywriting (Headline & Primary Text)...",
-  "Rendering High-Definition Visual Assets & Lighting Pass...",
-  "Optimizing Typographic Overlays & Social Ratio Formats...",
-  "Final Quality Verification & Secure Render Deployment..."
+  "Connecting to Private Brand Cluster & Initializing Secure Engine...",
+  "Loading Proprietary Brand Guidelines, Audience Data & Identity Rules...",
+  "Mining Brand-Specific Angle Frameworks & Hook Structures...",
+  "Synthesizing Precision Copywriting (Headline & Primary Positioning)...",
+  "Executing High-Definition Visual Composition & Lighting Pass...",
+  "Applying Custom Brand Assets, Typographic Overlays & Aspect Ratios...",
+  "Final Quality Control & Encrypted Render Delivery..."
 ];
 
 const STEP_PROGRESS_TARGETS = [14, 28, 42, 56, 70, 84, 96];
@@ -341,7 +341,7 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
                 rows={4}
                 value={promptInput}
                 onChange={e => setPromptInput(e.target.value)}
-                placeholder="Optional - Enter a specific campaign idea, promo code, or seasonal topic (leave blank to let our AI use your brand strategy)."
+                placeholder="Optional - Enter a specific campaign topic, promo code, or seasonal offer (leave blank to let our system use your pre-configured brand strategy)."
                 style={{ fontSize: '1rem', padding: '1rem', lineHeight: '1.5' }}
               />
             </div>
@@ -448,16 +448,16 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
               }} />
               <Cpu size={36} color="var(--accent-primary)" />
                   <h3 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.5rem', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              High-Performance Processing...
+              Proprietary Engine Processing...
             </h3>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for your brand
+              Generating {creativeCount} custom visual asset{creativeCount > 1 ? 's' : ''} for {client.name}
             </p>
 
             {/* Live Active Pulse Badge */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 1rem', borderRadius: '100px', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#a5b4fc', fontSize: '0.82rem', marginBottom: '1.75rem' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', display: 'inline-block', boxShadow: '0 0 10px #4ade80', animation: 'pulse 1.5s infinite' }} />
-              <span>AI Neural Pipeline active • Please stay on this page</span>
+              <span>Private Brand Cluster active • Processing custom rules</span>
             </div>
 
             {/* Progress Bar Container */}
