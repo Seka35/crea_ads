@@ -14,12 +14,11 @@ async function generateImage(prompt, input_urls) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-image-2-image-to-image",
+      model: "midjourney",
       input: {
         prompt: prompt,
         input_urls: input_urls || [],
-        aspect_ratio: "1:1", // Meta feed format (4:5 is temp unavailable on KIE)
-        resolution: "2K"
+        aspect_ratio: "1:1"
       }
     })
   });
