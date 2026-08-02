@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { X, Heart, MessageCircle, Send, Bookmark, Copy } from 'lucide-react';
 import type { StaticAd } from './AdCard';
 import type { AdImageState } from '../../hooks/useAdGeneration';

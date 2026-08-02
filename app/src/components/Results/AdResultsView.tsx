@@ -1,9 +1,10 @@
 
+import { useState } from 'react';
+import type { StaticAd } from './AdCard';
 import { AdCard } from './AdCard';
 import { AdDetailsModal } from './AdDetailsModal';
 import { EditPromptModal } from './EditPromptModal';
 import { Layers, Download } from 'lucide-react';
-import React, { useState } from 'react';
 
 interface Bucket {
   angle: string;
