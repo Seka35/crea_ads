@@ -73,6 +73,7 @@ const upload = multer({ storage: storage, limits: { files: 16, fileSize: 5 * 102
 
 // Serve uploads publicly
 app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.post('/api/upload', upload.array('images', 16), (req, res) => {

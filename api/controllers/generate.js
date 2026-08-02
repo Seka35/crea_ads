@@ -107,7 +107,9 @@ Return EXACTLY this JSON structure:
 }
 `;
   try {
-    return await callLLM(bucketPrompt);
+    const bucket = await callLLM(bucketPrompt);
+    bucket.angle = bucket.angle || category;
+    return bucket;
   } catch (e) {
     console.error(`Failed to generate bucket for ${category}:`, e);
     return { angle: category, static_ads: [] };
