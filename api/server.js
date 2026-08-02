@@ -9,19 +9,6 @@ const { generateSkeleton, generateBucket } = require('./controllers/generate');
 const { generateImage } = require('./controllers/images');
 
 const app = express();
-app.post('/api/generate-image', async (req, res) => {
-  try {
-    const { prompt, input_urls } = req.body;
-    if (!prompt) {
-      return res.status(400).json({ error: 'Image generation failed', details: 'Prompt manquant. L\'IA n\'a pas généré de description pour cette image.' });
-    }
-    const imageUrl = await generateImage(prompt, input_urls);
-    res.json({ url: imageUrl });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Image generation failed', details: error.message });
-  }
-});
 
 const { getHistory, getHistoryById, saveHistory, deleteHistory } = require('./controllers/history');
 
@@ -121,6 +108,9 @@ app.post('/api/generate-bucket', async (req, res) => {
 app.post('/api/generate-image', async (req, res) => {
   try {
     const { prompt, input_urls } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Image generation failed', details: 'Prompt manquant. L\'IA n\'a pas généré de description pour cette image.' });
+    }
     const resultUrl = await generateImage(prompt, input_urls);
     res.json({ url: resultUrl });
   } catch (error) {
