@@ -78,11 +78,14 @@ export function useAdGeneration() {
     }
   };
 
-  const queueImageGeneration = (ads: StaticAd[]) => {
+  const queueImageGeneration = (ads: StaticAd[], data?: AdGenerationData) => {
     const newItems = ads.map(ad => {
       let overlay = typeof ad.text_overlay === 'string' ? ad.text_overlay : (ad.text_overlay?.hook_line || '');
       if (typeof ad.text_overlay === 'object' && ad.text_overlay?.support_line && ad.text_overlay.support_line.toLowerCase() !== "none") {
         overlay += ` - ${ad.text_overlay.support_line}`;
+      }
+      if (data && !data.isPostMode && data.price) {
+        overlay += ` - Price: ${data.currency}${data.price}`;
       }
       return {
         adId: ad.id, 
@@ -186,7 +189,7 @@ export function useAdGeneration() {
           
           // Queue the newly generated ads for image generation
           if (bucket.static_ads) {
-            queueImageGeneration(bucket.static_ads);
+            queueImageGeneration(bucket.static_ads, data);
           }
         } else {
           console.error(`Failed to generate bucket ${category}`);
