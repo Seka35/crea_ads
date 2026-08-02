@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Cpu, Layers } from 'lucide-react';
+import { Sparkles, History, LogOut, Download, Eye, CheckCircle2, Layers } from 'lucide-react';
 import { AdDetailsModal } from '../Results/AdDetailsModal';
 import { AspectRatioSelector } from '../Form/AspectRatioSelector';
 import type { ClientProfile } from './ClientManagementModal';
@@ -454,19 +454,44 @@ export function ClientPortal({ client, onLogout }: ClientPortalProps) {
             {/* Glowing top line */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #6366f1, #a855f7, #ec4899)' }} />
 
-            {/* Central Icon Spinner */}
-            <div style={{ position: 'relative', width: '90px', height: '90px', margin: '0 auto 1.5rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Central Personalized Client Logo + Double Spinning Outer Rings */}
+            <div style={{ position: 'relative', width: '110px', height: '110px', margin: '0 auto 1.5rem auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              
+              {/* Outer Ring - Clockwise Fast Spin with Gradient Glow */}
               <div style={{
                 position: 'absolute', width: '100%', height: '100%', borderRadius: '50%',
                 border: '3px solid transparent', borderTopColor: 'var(--accent-primary)', borderRightColor: '#a855f7',
-                animation: 'spin 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite'
+                boxShadow: '0 0 20px rgba(99, 102, 241, 0.4)',
+                animation: 'spin 1.4s linear infinite'
               }} />
+
+              {/* Inner Ring - Counter-Clockwise Pulse Spin */}
               <div style={{
-                position: 'absolute', width: '70%', height: '70%', borderRadius: '50%',
-                border: '2px solid transparent', borderBottomColor: '#ec4899',
-                animation: 'spin 2s linear infinite reverse'
+                position: 'absolute', width: '80%', height: '80%', borderRadius: '50%',
+                border: '2px solid transparent', borderBottomColor: '#ec4899', borderLeftColor: '#6366f1',
+                animation: 'spin 2.2s linear infinite reverse'
               }} />
-              <Cpu size={36} color="var(--accent-primary)" />
+
+              {/* Center Client Logo or Initial Badge */}
+              {client.logoUrl ? (
+                <div style={{
+                  width: '58px', height: '58px', borderRadius: '50%', overflow: 'hidden',
+                  border: '2px solid var(--accent-primary)', boxShadow: '0 0 20px rgba(99, 102, 241, 0.6)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000'
+                }}>
+                  <img src={client.logoUrl} alt={client.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              ) : (
+                <div style={{
+                  width: '58px', height: '58px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--accent-primary), #a855f7)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#ffffff', fontWeight: 800, fontSize: '1.4rem',
+                  boxShadow: '0 0 20px rgba(168, 85, 247, 0.6)'
+                }}>
+                  {client.name.substring(0, 1).toUpperCase()}
+                </div>
+              )}
             </div>
 
             <h3 style={{ fontSize: '1.6rem', fontWeight: 700, margin: '0 0 0.5rem 0', background: 'linear-gradient(135deg, #fff, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
